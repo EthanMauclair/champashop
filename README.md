@@ -1,75 +1,36 @@
-# Nuxt Minimal Starter
+# ChampaShop - Vitrine en ligne
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
 
-## Setup
+## Répartition des rôles
 
-Make sure to install dependencies:
+* **[Votre Prénom]** : [F1 - Catalogue, F2 - Fiche produit...]
+* **[Prénom Coéquipier 1]** : [F3 - Panier, F4 - Moteur de promotions...]
+* **[Prénom Coéquipier 2]** : [F5 - Authentification...]
 
-```bash
-# npm
-npm install
+## Installation
 
-# pnpm
-pnpm install
+1. Cloner le dépôt.
+2. Installer les dépendances en tapant `npm install` dans le terminal.
 
-# yarn
-yarn install
+## Scripts utiles
 
-# bun
-bun install
-```
+* `npm run dev` : Lancer le serveur de développement local.
+* `npm run lint` : Vérifier le code avec ESLint.
+* `npm run typecheck` : Vérifier strictement les types TypeScript.
+* `npm run test` : Lancer les tests unitaires avec Vitest.
+* `npm run test:coverage` : Générer le rapport de couverture des tests.
+* `npm run build` : Compiler l'application pour la production.
 
-## Development Server
+## Conventions Git (GitFlow)
 
-Start the development server on `http://localhost:3000`:
+Nous suivons un modèle GitFlow strict :
 
-```bash
-# npm
-npm run dev
+* **main** : Branche de production protégée.
+* **develop** : Branche d'intégration protégée. Merge autorisé uniquement via Pull Request approuvée.
+* **Branches de fonctionnalités** : `feature/<id>-<description>` créées depuis `develop`.
+* **Commits** : Format Conventional Commits imposé (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`).
 
-# pnpm
-pnpm dev
+## Déploiement
 
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Le lien de production sera inséré ici une fois déployé.
