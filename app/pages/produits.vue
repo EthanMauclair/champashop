@@ -189,15 +189,18 @@ const handleSortChange = (event: Event) => {
 
 const updateFilters = (key: string, value: string | number | undefined) => {
   const query = { ...route.query }
+  
   if (value) {
     query[key] = String(value)
   } else {
-    query[key] = undefined
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete query[key]
   }
   
   if (key !== 'page') {
-    query.page = undefined
+    delete query.page
   }
+  
   router.push({ query })
 }
 
