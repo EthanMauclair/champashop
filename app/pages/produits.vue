@@ -7,10 +7,10 @@
       <input 
         type="search" 
         :value="route.query.q" 
-        @input="handleSearch" 
         placeholder="Rechercher un produit (ex: Samsung, parfum...)" 
-        class="search-input"
-      />
+        class="search-input" 
+        @input="handleSearch"
+      >
     </div>
 
     <!-- Barre de filtres et tris -->
@@ -27,9 +27,9 @@
       
       <div class="filter-group">
         <label>Prix :</label>
-        <input type="number" placeholder="Min" :value="route.query.minPrice" @change="updateFilters('minPrice', ($event.target as HTMLInputElement).value)" class="price-input" />
+        <input type="number" placeholder="Min" :value="route.query.minPrice" class="price-input" @change="updateFilters('minPrice', ($event.target as HTMLInputElement).value)" >
         <span>à</span>
-        <input type="number" placeholder="Max" :value="route.query.maxPrice" @change="updateFilters('maxPrice', ($event.target as HTMLInputElement).value)" class="price-input" />
+        <input type="number" placeholder="Max" :value="route.query.maxPrice" class="price-input" @change="updateFilters('maxPrice', ($event.target as HTMLInputElement).value)" >
       </div>
 
       <div class="filter-group">
@@ -51,12 +51,12 @@
 
     <div v-else-if="error" class="error-state">
       <p>Une erreur est survenue lors du chargement du catalogue.</p>
-      <button @click="refresh()" class="retry-btn">Réessayer</button>
+      <button class="retry-btn" @click="refresh()">Réessayer</button>
     </div>
 
     <div v-else-if="!paginatedProducts.length" class="empty-state">
       <p>Aucun produit ne correspond à vos critères.</p>
-      <button @click="resetFilters()" class="retry-btn">Réinitialiser les filtres</button>
+      <button class="retry-btn" @click="resetFilters()">Réinitialiser les filtres</button>
     </div>
 
     <div v-else>
@@ -142,9 +142,11 @@ const processedProducts = computed(() => {
   const order = route.query.order as string
   
   if (sortBy && order) {
-    result = [...result].sort((a: any, b: any) => {
-      let valA = a[sortBy]
-      let valB = b[sortBy]
+    result = [...result].sort((a: Product, b: Product) => {
+      const key = sortBy as keyof Product
+      const valA = a[key]
+      const valB = b[key]
+      if (valA === undefined || valB === undefined) return 0
       if (valA < valB) return order === 'asc' ? -1 : 1
       if (valA > valB) return order === 'asc' ? 1 : -1
       return 0
@@ -185,11 +187,17 @@ const handleSortChange = (event: Event) => {
   updateSort(target.value)
 }
 
-const updateFilters = (key: string, value: any) => {
+const updateFilters = (key: string, value: string | number | undefined) => {
   const query = { ...route.query }
-  if (value) query[key] = value
-  else delete query[key]
-  if (key !== 'page') delete query.page // Reset la page à 1 si on filtre
+  if (value) {
+    query[key] = String(value)
+  } else {
+    query[key] = undefined
+  }
+  
+  if (key !== 'page') {
+    query.page = undefined
+  }
   router.push({ query })
 }
 

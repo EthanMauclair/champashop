@@ -5,13 +5,13 @@
       <span v-if="product.discountPercentage" class="discount-badge">
         -{{ Math.round(product.discountPercentage) }} %
       </span>
-      <img :src="product.thumbnail" :alt="product.title" class="product-image" />
+      <img :src="product.thumbnail" :alt="product.title" class="product-image" >
     </div>
     
     <h2 class="product-title">{{ product.title }}</h2>
     
     <!-- Note sur 5 -->
-    <div class="product-rating" v-if="product.rating">
+    <div v-if="product.rating" class="product-rating">
       ⭐ {{ product.rating }} / 5
     </div>
     

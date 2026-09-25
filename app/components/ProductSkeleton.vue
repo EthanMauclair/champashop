@@ -1,9 +1,9 @@
 <template>
   <article class="skeleton-card">
-    <div class="skeleton-image"></div>
-    <div class="skeleton-title"></div>
-    <div class="skeleton-rating"></div>
-    <div class="skeleton-price"></div>
+    <div class="skeleton-image"/>
+    <div class="skeleton-title"/>
+    <div class="skeleton-rating"/>
+    <div class="skeleton-price"/>
   </article>
 </template>
 
