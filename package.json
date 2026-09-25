@@ -11,7 +11,10 @@
     "lint": "eslint .",
     "typecheck": "nuxi typecheck",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
+    "test:unit": "vitest --project unit",
+    "test:nuxt": "vitest --project nuxt"
   },
   "dependencies": {
     "nuxt": "^4.5.2",
@@ -23,7 +26,10 @@
     "@nuxt/test-utils": "^4.3.2",
     "@pinia/nuxt": "^1.0.2",
     "@vitest/coverage-v8": "^5.0.1",
+    "@vue/test-utils": "^2.5.1",
     "prettier": "^3.9.9",
-    "vitest": "^5.0.1"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1",
+    "vue-tsc": "^3.3.11"
   }
 }
