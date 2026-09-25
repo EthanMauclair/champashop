@@ -2,6 +2,17 @@
   <main class="container">
     <h1>Catalogue ChampaShop</h1>
 
+    <!-- Nouvelle barre de recherche -->
+    <div class="search-bar">
+      <input 
+        type="search" 
+        :value="route.query.q" 
+        @input="handleSearch" 
+        placeholder="Rechercher un produit (ex: Samsung, parfum...)" 
+        class="search-input"
+      />
+    </div>
+
     <!-- Barre de filtres et tris -->
     <div class="filters-bar">
       <div class="filter-group">
@@ -14,7 +25,6 @@
         </select>
       </div>
       
-      <!-- Nouveau : Filtres de prix -->
       <div class="filter-group">
         <label>Prix :</label>
         <input type="number" placeholder="Min" :value="route.query.minPrice" @change="updateFilters('minPrice', ($event.target as HTMLInputElement).value)" class="price-input" />
@@ -51,7 +61,6 @@
 
     <div v-else>
       <div class="product-grid">
-        <!-- On boucle maintenant sur paginatedProducts calculé localement -->
         <ProductCard 
           v-for="product in paginatedProducts" 
           :key="product.id" 
@@ -96,7 +105,6 @@ interface Category {
 
 const { data: categories } = await useFetch<Category[]>('https://dummyjson.com/products/categories')
 
-// Lecture de l'URL
 const limit = 12
 const page = computed(() => Number(route.query.page) || 1)
 const currentCategory = computed(() => route.query.category as string || '')
@@ -105,7 +113,6 @@ const currentSort = computed(() => {
   return `${route.query.sortBy}-${route.query.order || 'asc'}`
 })
 
-// On demande tous les produits (limit=0) de la catégorie pour pouvoir les filtrer localement
 const apiUrl = computed(() => {
   const base = currentCategory.value ? `https://dummyjson.com/products/category/${currentCategory.value}` : 'https://dummyjson.com/products'
   return `${base}?limit=0`
@@ -117,13 +124,20 @@ const { data, pending, error, refresh } = await useFetch<DummyJsonResponse>(() =
 const processedProducts = computed(() => {
   let result = data.value?.products || []
 
-  // 1. Filtrage par prix
+  // 1. Filtrage par recherche plein texte
+  const searchQuery = route.query.q as string
+  if (searchQuery) {
+    const lowerQ = searchQuery.toLowerCase()
+    result = result.filter(p => p.title.toLowerCase().includes(lowerQ))
+  }
+
+  // 2. Filtrage par prix
   const min = Number(route.query.minPrice)
   const max = Number(route.query.maxPrice)
   if (min) result = result.filter(p => p.price >= min)
   if (max) result = result.filter(p => p.price <= max)
 
-  // 2. Tri local
+  // 3. Tri local
   const sortBy = route.query.sortBy as string
   const order = route.query.order as string
   
@@ -140,14 +154,26 @@ const processedProducts = computed(() => {
   return result
 })
 
-// 3. Pagination locale
 const totalPages = computed(() => Math.max(1, Math.ceil(processedProducts.value.length / limit)))
 
 const paginatedProducts = computed(() => {
   const start = (page.value - 1) * limit
   return processedProducts.value.slice(start, start + limit)
 })
-// ------------------------------------------
+
+// -- GESTION DES ÉVÉNEMENTS ET DU DEBOUNCE --
+let debounceTimeout: ReturnType<typeof setTimeout>
+
+const handleSearch = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  // On annule le timer précédent s'il y en avait un (l'utilisateur tape encore)
+  clearTimeout(debounceTimeout)
+  
+  // On crée un nouveau timer de 300ms
+  debounceTimeout = setTimeout(() => {
+    updateFilters('q', target.value)
+  }, 300)
+}
 
 const handleCategoryChange = (event: Event) => {
   const target = event.target as HTMLSelectElement
@@ -163,7 +189,7 @@ const updateFilters = (key: string, value: any) => {
   const query = { ...route.query }
   if (value) query[key] = value
   else delete query[key]
-  if (key !== 'page') delete query.page
+  if (key !== 'page') delete query.page // Reset la page à 1 si on filtre
   router.push({ query })
 }
 
@@ -185,7 +211,7 @@ const resetFilters = () => router.push({ query: {} })
 </script>
 
 <style scoped>
-/* Conservez exactement vos anciens styles ici et ajoutez ceci à la fin : */
+/* Vos styles précédents restent identiques */
 .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 h1 { text-align: center; margin-bottom: 2rem; }
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem; }
@@ -202,12 +228,25 @@ button:not(:disabled):hover { background-color: #34495e; }
 .filter-group { display: flex; align-items: center; gap: 0.5rem; }
 select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; outline: none; }
 select:focus { border-color: #2c3e50; }
+.price-input { width: 70px; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
 
-/* Nouveau style pour les inputs de prix */
-.price-input {
-  width: 70px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+/* Styles pour la barre de recherche */
+.search-bar {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+.search-input {
+  width: 100%;
+  max-width: 600px;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  border: 2px solid #eaeaea;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus {
+  border-color: #2c3e50;
 }
 </style>
