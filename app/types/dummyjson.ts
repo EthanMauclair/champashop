@@ -56,8 +56,12 @@ export interface Product {
 export type ProductPreview = Pick<Product, 'id' | 'title' | 'price' | 'thumbnail' | 'category' | 'stock'>
   & Partial<Pick<Product, 'rating' | 'discountPercentage'>>
 
-export interface ProductsResponse {
-  products: Product[]
+/**
+ * Réponse paginée de DummyJSON. Générique car avec `?select=` l'API ne
+ * renvoie qu'une partie des champs de chaque produit.
+ */
+export interface ProductsResponse<T = Product> {
+  products: T[]
   total: number
   skip: number
   limit: number
