@@ -20,6 +20,10 @@ La recherche plein texte, le filtre de prix, le tri et la pagination (12 par pag
 * **Recherche** : debounce de 300 ms (composable `useDebouncedCallback`). Comme la recherche ne fait pas de requête, aucune ancienne réponse ne peut écraser une plus récente. Seul le changement de catégorie fait une requête, et `useFetch` annule la requête précédente si une nouvelle part.
 * **URL source de vérité** : `q`, `category`, `sortBy`, `order`, `minPrice`, `maxPrice` et `page` sont dans l'URL ; la page est rendue côté serveur, et la pagination utilise de vrais liens (fonctionne sans JavaScript).
 
+### F2 (Fiche produit)
+`/produits/[id]` affiche une galerie (`ProductGallery`, miniatures utilisables au clavier), la description, la marque, la note, le stock, la garantie, la livraison et les avis. Le message de stock (« Plus que X en stock » sous 5, « Rupture de stock » à 0) vient de la fonction pure `getStockStatus` (`app/utils/stock.ts`, testée). Le bouton d'ajout est le composant partagé `AddToCartButton`, désactivé à 0.
+SEO : `useSeoMeta` (titre, description, Open Graph avec image). Un identifiant inexistant ou non numérique renvoie une **vraie 404** via `createError` ; une panne de l'API renvoie une 503, pas une fausse 404. La page `app/error.vue` affiche ces erreurs.
+
 ### F4 (Moteur de promotions)
 `app/utils/promotions.ts` expose `computeCart(lines, promoCode?)`, une **fonction pure** (sans Vue ni Pinia) appelée par le store du panier. Tous les montants sont en **centimes entiers** ; l'arrondi commercial (demi vers le haut) est fait en arithmétique entière (`app/utils/money.ts`) pour éviter les erreurs de flottants.
 Chaque règle (remise beauté, code TROYES10, plafond de 25 %, livraison) est une petite fonction exportée et testée séparément ; `computeCart` ne fait que les enchaîner dans l'ordre du sujet.
