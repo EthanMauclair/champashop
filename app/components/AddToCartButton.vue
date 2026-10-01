@@ -2,17 +2,22 @@
   <div class="add-to-cart">
     <button
       type="button"
-      class="add-to-cart__button"
+      class="btn btn--block"
+      :class="[compact ? 'btn--secondary btn--sm' : 'btn--primary', { 'add-to-cart__button--done': justAdded }]"
       :disabled="isOutOfStock"
       :aria-label="buttonLabel"
       @click="onAdd"
     >
-      {{ isOutOfStock ? 'Rupture de stock' : 'Ajouter au panier' }}
+      <span aria-hidden="true">{{ justAdded ? '✓' : '+' }}</span>
+      {{ isOutOfStock ? 'Rupture de stock' : justAdded ? 'Ajouté' : 'Ajouter au panier' }}
     </button>
     <!-- Zone annoncée par les lecteurs d'écran à chaque ajout. -->
     <p
       class="add-to-cart__message"
-      :class="{ 'add-to-cart__message--error': lastResult && !lastResult.ok }"
+      :class="{
+        'add-to-cart__message--error': lastResult && !lastResult.ok,
+        'visually-hidden': compact && lastResult?.ok,
+      }"
       role="status"
       aria-live="polite"
     >
@@ -22,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import type { CartProduct, CartUpdate } from '~/types/cart'
 import { useCartStore } from '~/stores/cart'
 
@@ -34,16 +39,23 @@ import { useCartStore } from '~/stores/cart'
 const props = withDefaults(defineProps<{
   product: CartProduct
   quantity?: number
+  /** Variante discrète pour les cartes du catalogue. */
+  compact?: boolean
 }>(), {
   quantity: 1,
+  compact: false,
 })
 
 const emit = defineEmits<{
   added: [result: CartUpdate]
 }>()
 
+const FEEDBACK_DURATION_MS = 1500
+
 const cart = useCartStore()
 const lastResult = ref<CartUpdate | null>(null)
+const justAdded = ref<boolean>(false)
+let feedbackTimer: ReturnType<typeof setTimeout> | undefined
 
 const isOutOfStock = computed<boolean>(() => props.product.stock <= 0)
 
@@ -57,41 +69,37 @@ function onAdd(): void {
   const result = cart.add(props.product, props.quantity)
   lastResult.value = result
   emit('added', result)
+
+  // Retour visuel bref sur le bouton (« ✓ Ajouté »).
+  justAdded.value = result.ok
+  clearTimeout(feedbackTimer)
+  feedbackTimer = setTimeout(() => {
+    justAdded.value = false
+  }, FEEDBACK_DURATION_MS)
 }
+
+onBeforeUnmount(() => clearTimeout(feedbackTimer))
 </script>
 
 <style scoped>
-.add-to-cart {
-  margin-top: 0.75rem;
-}
-.add-to-cart__button {
-  width: 100%;
-  padding: 0.6rem 1rem;
-  background-color: #2c3e50;
+.add-to-cart__button--done,
+.add-to-cart__button--done:hover:not(:disabled) {
+  background: var(--color-success);
+  border-color: var(--color-success);
   color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
 }
-.add-to-cart__button:hover:not(:disabled) {
-  background-color: #34495e;
-}
-.add-to-cart__button:focus-visible {
-  outline: 3px solid #f39c12;
-  outline-offset: 2px;
-}
-.add-to-cart__button:disabled {
-  background-color: #6b7280;
-  cursor: not-allowed;
-}
+
 .add-to-cart__message {
-  min-height: 1.25rem;
-  margin: 0.4rem 0 0;
-  font-size: 0.85rem;
-  color: #1e6b3a;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-success);
 }
+
+.add-to-cart__message:empty {
+  margin: 0;
+}
+
 .add-to-cart__message--error {
-  color: #b42318;
+  color: var(--color-danger);
 }
 </style>
