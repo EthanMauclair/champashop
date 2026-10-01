@@ -1,5 +1,5 @@
 <template>
-  <section class="summary" aria-labelledby="summary-title">
+  <section class="summary card" aria-labelledby="summary-title">
     <h2 id="summary-title">Récapitulatif</h2>
 
     <dl class="summary__rows">
@@ -42,46 +42,63 @@ defineProps<{
 
 <style scoped>
 .summary {
-  padding: 1.5rem;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  background: #f8f9fa;
+  padding: var(--space-5);
 }
+
 .summary h2 {
-  margin-top: 0;
-  font-size: 1.25rem;
+  margin-bottom: var(--space-4);
 }
+
 .summary__rows {
   margin: 0;
 }
+
 .summary__row {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.4rem 0;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
 }
+
 .summary__row dt {
   margin: 0;
+  color: var(--color-text-muted);
 }
+
 .summary__row dd {
   margin: 0;
   white-space: nowrap;
+  font-weight: 600;
 }
-.summary__row--discount {
-  color: #1e6b3a;
+
+.summary__row--discount dt,
+.summary__row--discount dd {
+  color: var(--color-success);
 }
+
 .summary__row--total {
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 2px solid #2c3e50;
-  font-size: 1.2rem;
-  font-weight: bold;
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xl);
 }
+
+.summary__row--total dt {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.summary__row--total dd {
+  font-weight: 800;
+}
+
 .summary__messages {
-  margin: 1rem 0 0;
-  padding: 0.75rem 1rem 0.75rem 2rem;
-  border-radius: 4px;
-  background: #fff4e5;
-  color: #7a4100;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  font-size: var(--text-sm);
 }
 </style>

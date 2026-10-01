@@ -1,6 +1,8 @@
 <template>
   <li class="cart-line">
-    <img :src="product.thumbnail" alt="" class="cart-line__image" width="80" height="80" loading="lazy">
+    <div class="cart-line__media">
+      <img :src="product.thumbnail" alt="" class="cart-line__image" width="88" height="88" loading="lazy">
+    </div>
 
     <div class="cart-line__info">
       <h2 class="cart-line__title">
@@ -47,7 +49,7 @@
 
     <button
       type="button"
-      class="cart-line__remove"
+      class="btn btn--danger-ghost btn--sm cart-line__remove"
       :aria-label="`Retirer ${product.title} du panier`"
       @click="emit('remove')"
     >
@@ -103,84 +105,144 @@ async function onInputChange(event: Event): Promise<void> {
 <style scoped>
 .cart-line {
   display: grid;
-  grid-template-columns: 80px 1fr auto auto auto;
+  grid-template-columns: 88px minmax(0, 1fr) auto auto auto;
+  grid-template-areas:
+    'media info quantity total remove'
+    'media message message message message';
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #eaeaea;
+  column-gap: var(--space-5);
+  row-gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
 }
+
+.cart-line:last-child {
+  border-bottom: none;
+}
+
+.cart-line__media {
+  grid-area: media;
+  width: 88px;
+  height: 88px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
 .cart-line__image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--space-1);
 }
+
+.cart-line__info {
+  grid-area: info;
+  min-width: 0;
+}
+
 .cart-line__title {
-  font-size: 1.05rem;
-  margin: 0 0 0.25rem;
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
 }
+
 .cart-line__title a {
-  color: #2c3e50;
+  color: var(--color-text);
+  text-decoration: none;
 }
+
+.cart-line__title a:hover {
+  text-decoration: underline;
+}
+
 .cart-line__meta {
   margin: 0;
-  color: #4b5563;
-  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
+
 .cart-line__quantity {
-  display: flex;
+  grid-area: quantity;
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  overflow: hidden;
 }
-.cart-line__input {
-  width: 3.5rem;
-  padding: 0.4rem;
-  text-align: center;
-  border: 1px solid #9ca3af;
-  border-radius: 4px;
-}
-.cart-line__step,
-.cart-line__remove {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid #2c3e50;
-  border-radius: 4px;
-  background: #fff;
-  color: #2c3e50;
+
+.cart-line__step {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: var(--text-lg);
   cursor: pointer;
 }
-.cart-line__remove {
-  border-color: #b42318;
-  color: #b42318;
+
+.cart-line__step:hover {
+  background: var(--color-surface-muted);
 }
+
 .cart-line__step:focus-visible,
-.cart-line__remove:focus-visible,
 .cart-line__input:focus-visible {
-  outline: 3px solid #f39c12;
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
+
+.cart-line__input {
+  width: 3rem;
+  height: 36px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-weight: 600;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.cart-line__input::-webkit-inner-spin-button,
+.cart-line__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .cart-line__total {
-  margin: 0;
-  font-weight: bold;
+  grid-area: total;
   min-width: 6rem;
-  text-align: right;
-}
-.cart-line__message {
-  grid-column: 2 / -1;
   margin: 0;
-  color: #b42318;
-  font-size: 0.9rem;
+  text-align: right;
+  font-weight: 700;
 }
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+
+.cart-line__remove {
+  grid-area: remove;
 }
-@media (max-width: 640px) {
+
+.cart-line__message {
+  grid-area: message;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
   .cart-line {
-    grid-template-columns: 64px 1fr;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'media info info'
+      'media quantity total'
+      'media remove remove'
+      'media message message';
+    column-gap: var(--space-4);
+  }
+
+  .cart-line__media {
+    width: 72px;
+    height: 72px;
+  }
+
+  .cart-line__remove {
+    justify-self: start;
+    padding-left: 0;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <form class="promo" @submit.prevent="onSubmit">
-    <label for="promo-code" class="promo__label">Code promo</label>
+  <form class="promo card" @submit.prevent="onSubmit">
+    <label for="promo-code" class="field__label">Code promo</label>
     <div class="promo__controls">
       <input
         id="promo-code"
@@ -9,15 +9,15 @@
         name="promo"
         autocomplete="off"
         maxlength="30"
-        class="promo__input"
+        class="input promo__input"
         placeholder="Ex. : TROYES10"
       >
-      <button type="submit" class="promo__button">Appliquer</button>
+      <button type="submit" class="btn btn--secondary">Appliquer</button>
     </div>
 
     <p v-if="appliedCode" class="promo__applied">
       Code saisi : <strong>{{ appliedCode }}</strong>
-      <button type="button" class="promo__remove" @click="onRemove">Retirer le code</button>
+      <button type="button" class="btn btn--danger-ghost btn--sm" @click="onRemove">Retirer</button>
     </p>
   </form>
 </template>
@@ -53,48 +53,30 @@ function onRemove(): void {
 
 <style scoped>
 .promo {
-  margin-top: 1.5rem;
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-5);
 }
-.promo__label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 0.4rem;
-}
+
 .promo__controls {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
+
 .promo__input {
   flex: 1;
   min-width: 0;
-  padding: 0.5rem;
-  border: 1px solid #9ca3af;
-  border-radius: 4px;
-  font-size: 1rem;
+  text-transform: uppercase;
 }
-.promo__button,
-.promo__remove {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background: #2c3e50;
-  color: #fff;
-  cursor: pointer;
-}
-.promo__remove {
-  margin-left: 0.5rem;
-  padding: 0.25rem 0.6rem;
-  background: #fff;
-  color: #b42318;
-  border: 1px solid #b42318;
-}
-.promo__input:focus-visible,
-.promo__button:focus-visible,
-.promo__remove:focus-visible {
-  outline: 3px solid #f39c12;
-  outline-offset: 2px;
-}
+
 .promo__applied {
-  margin: 0.75rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 </style>
