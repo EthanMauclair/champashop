@@ -4,7 +4,7 @@
       <p class="error-page__code">{{ error.statusCode }}</p>
       <h1 class="error-page__title">{{ title }}</h1>
       <p class="error-page__text">{{ message }}</p>
-      <button type="button" class="error-page__button" @click="backToCatalogue">
+      <button type="button" class="btn btn--primary" @click="backToCatalogue">
         Retour au catalogue
       </button>
     </main>
@@ -47,33 +47,25 @@ function backToCatalogue(): void {
 .error-page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 5rem 2rem;
+  padding: var(--space-8) var(--space-5);
   text-align: center;
 }
+
 .error-page__code {
   margin: 0;
-  font-size: 4rem;
+  font-size: clamp(4rem, 12vw, 7rem);
   font-weight: 800;
-  color: #4f46e5;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--color-accent);
 }
+
 .error-page__title {
-  margin: 0.5rem 0 1rem;
+  margin: var(--space-4) 0 var(--space-3);
 }
+
 .error-page__text {
-  margin: 0 0 2rem;
-  color: #4b5563;
-}
-.error-page__button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 999px;
-  background: #111827;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-}
-.error-page__button:focus-visible {
-  outline: 3px solid #4f46e5;
-  outline-offset: 2px;
+  margin-bottom: var(--space-6);
+  color: var(--color-text-muted);
 }
 </style>

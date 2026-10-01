@@ -37,6 +37,11 @@ Le titre, le prix, la catégorie, le stock et l'image ne sont **pas** stockés :
 La logique (ajout, quantité, stock, lecture/écriture du cookie) est faite par des fonctions pures dans `app/utils/cart.ts`, testées dans `tests/unit/cart.spec.ts`. Le store ne fait que les appeler et persister le résultat.
 Le composant `AddToCartButton` est réutilisable : il est branché sur les cartes du catalogue et peut être inséré dans la fiche produit (F2) avec `<AddToCartButton :product="product" />`. Il gère déjà l'état « Rupture de stock » (bouton désactivé).
 
+### Design, accessibilité et référencement
+* **Design « moderne minimal » en CSS pur**, sans dépendance supplémentaire : `app/assets/css/main.css` définit les variables (couleurs, espacements, rayons), la base typographique (police Inter), les boutons (`.btn`), les champs (`.input`, `.select`) et les états (`.state`, `.notice`). Les composants n'utilisent que ces variables.
+* **Accessibilité** : `lang="fr"`, lien d'évitement, focus visible partout, champs tous associés à un label, contrastes AA, annonces `aria-live` (résultats, ajout au panier), galerie et quantités utilisables au clavier.
+* **Référencement** : rendu serveur, `useSeoMeta` sur chaque page (titre, description, Open Graph), page d'accueil, pagination en vrais liens, `robots.txt` et plan du site généré à la demande (`/sitemap.xml`, `server/routes/sitemap.xml.ts`) à partir de `NUXT_PUBLIC_SITE_URL`.
+
 ## Installation
 
 1. Cloner le dépôt.

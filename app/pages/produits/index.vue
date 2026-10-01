@@ -1,27 +1,36 @@
 <template>
   <main class="container">
-    <h1>Catalogue ChampaShop</h1>
+    <header class="page-header catalog-header">
+      <div>
+        <h1 class="page-header__title">{{ currentCategoryName || 'Catalogue' }}</h1>
+        <p class="page-header__subtitle">Beauté, maison, high-tech, épicerie… tout ChampaShop au même endroit.</p>
+      </div>
 
-    <!-- Recherche plein texte (debounce 300 ms) -->
-    <form class="search-bar" role="search" @submit.prevent="applySearchNow">
-      <label for="catalog-search" class="visually-hidden">Rechercher un produit</label>
-      <input
-        id="catalog-search"
-        v-model="searchText"
-        type="search"
-        name="q"
-        placeholder="Rechercher un produit (ex : Samsung, parfum…)"
-        class="search-input"
-        autocomplete="off"
-        @input="debouncedSearch.run()"
-      >
-    </form>
+      <!-- Recherche plein texte (debounce 300 ms) -->
+      <form class="search" role="search" @submit.prevent="applySearchNow">
+        <label for="catalog-search" class="visually-hidden">Rechercher un produit</label>
+        <svg class="search__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <input
+          id="catalog-search"
+          v-model="searchText"
+          type="search"
+          name="q"
+          placeholder="Rechercher un produit, une marque…"
+          class="input search__input"
+          autocomplete="off"
+          @input="debouncedSearch.run()"
+        >
+      </form>
+    </header>
 
     <!-- Filtres et tri -->
-    <div class="filters-bar">
-      <div class="filter-group">
-        <label for="category">Catégorie</label>
-        <select id="category" :value="filters.category" @change="onCategoryChange">
+    <div class="toolbar card">
+      <div class="field">
+        <label for="category" class="field__label">Catégorie</label>
+        <select id="category" class="select" :value="filters.category" @change="onCategoryChange">
           <option value="">Toutes les catégories</option>
           <option v-for="cat in categories ?? []" :key="cat.slug" :value="cat.slug">
             {{ cat.name }}
@@ -29,38 +38,40 @@
         </select>
       </div>
 
-      <fieldset class="filter-group price-group">
-        <legend>Prix (€)</legend>
-        <label for="min-price" class="visually-hidden">Prix minimum en euros</label>
-        <input
-          id="min-price"
-          type="number"
-          min="0"
-          step="1"
-          inputmode="decimal"
-          placeholder="Min"
-          :value="filters.minPrice ?? ''"
-          class="price-input"
-          @change="onPriceChange('minPrice', $event)"
-        >
-        <span aria-hidden="true">à</span>
-        <label for="max-price" class="visually-hidden">Prix maximum en euros</label>
-        <input
-          id="max-price"
-          type="number"
-          min="0"
-          step="1"
-          inputmode="decimal"
-          placeholder="Max"
-          :value="filters.maxPrice ?? ''"
-          class="price-input"
-          @change="onPriceChange('maxPrice', $event)"
-        >
+      <fieldset class="field price-range">
+        <legend class="field__label">Prix (€)</legend>
+        <div class="price-range__inputs">
+          <label for="min-price" class="visually-hidden">Prix minimum en euros</label>
+          <input
+            id="min-price"
+            type="number"
+            min="0"
+            step="1"
+            inputmode="decimal"
+            placeholder="Min"
+            :value="filters.minPrice ?? ''"
+            class="input"
+            @change="onPriceChange('minPrice', $event)"
+          >
+          <span aria-hidden="true">–</span>
+          <label for="max-price" class="visually-hidden">Prix maximum en euros</label>
+          <input
+            id="max-price"
+            type="number"
+            min="0"
+            step="1"
+            inputmode="decimal"
+            placeholder="Max"
+            :value="filters.maxPrice ?? ''"
+            class="input"
+            @change="onPriceChange('maxPrice', $event)"
+          >
+        </div>
       </fieldset>
 
-      <div class="filter-group">
-        <label for="sort">Trier par</label>
-        <select id="sort" :value="sortValue" @change="onSortChange">
+      <div class="field">
+        <label for="sort" class="field__label">Trier par</label>
+        <select id="sort" class="select" :value="sortValue" @change="onSortChange">
           <option value="">Pertinence</option>
           <option value="price-asc">Prix croissant</option>
           <option value="price-desc">Prix décroissant</option>
@@ -70,12 +81,17 @@
           <option value="rating-asc">Moins bien notés</option>
         </select>
       </div>
+
+      <NuxtLink v-if="hasActiveFilters" to="/produits" class="btn btn--secondary btn--sm toolbar__reset">
+        Effacer les filtres
+      </NuxtLink>
     </div>
 
     <!-- Annonce du nombre de résultats pour les lecteurs d'écran -->
     <p class="results-count" role="status" aria-live="polite">
       <template v-if="status !== 'pending' && !error">
         {{ catalogPage.totalItems }} produit{{ catalogPage.totalItems > 1 ? 's' : '' }}
+        <template v-if="filters.q">pour « {{ filters.q }} »</template>
       </template>
     </p>
 
@@ -83,14 +99,14 @@
       <ProductSkeleton v-for="n in CATALOG_PAGE_SIZE" :key="n" />
     </div>
 
-    <div v-else-if="error" class="error-state" role="alert">
+    <div v-else-if="error" class="state state--error" role="alert">
       <p>Une erreur est survenue lors du chargement du catalogue.</p>
-      <button type="button" class="retry-btn" @click="refresh()">Réessayer</button>
+      <button type="button" class="btn btn--primary" @click="refresh()">Réessayer</button>
     </div>
 
-    <div v-else-if="catalogPage.items.length === 0" class="empty-state">
+    <div v-else-if="catalogPage.items.length === 0" class="state">
       <p>Aucun produit ne correspond à vos critères.</p>
-      <NuxtLink to="/produits" class="retry-btn">Réinitialiser les filtres</NuxtLink>
+      <NuxtLink to="/produits" class="btn btn--primary">Réinitialiser les filtres</NuxtLink>
     </div>
 
     <template v-else>
@@ -106,18 +122,18 @@
           v-if="catalogPage.page > 1"
           :to="pageLink(catalogPage.page - 1)"
           rel="prev"
-          class="page-link"
+          class="btn btn--secondary btn--sm"
         >
-          Précédent
+          ← Précédent
         </NuxtLink>
-        <span class="page-info" aria-current="page">Page {{ catalogPage.page }} sur {{ catalogPage.totalPages }}</span>
+        <span class="pagination__info" aria-current="page">Page {{ catalogPage.page }} sur {{ catalogPage.totalPages }}</span>
         <NuxtLink
           v-if="catalogPage.page < catalogPage.totalPages"
           :to="pageLink(catalogPage.page + 1)"
           rel="next"
-          class="page-link"
+          class="btn btn--secondary btn--sm"
         >
-          Suivant
+          Suivant →
         </NuxtLink>
       </nav>
     </template>
@@ -171,6 +187,8 @@ const { data, status, error, refresh } = await useFetch<ProductsResponse<Catalog
 const catalogPage = computed<CatalogPage<CatalogProduct>>(() =>
   getCatalogPage(data.value?.products ?? [], filters.value),
 )
+
+const hasActiveFilters = computed<boolean>(() => Object.keys(toCatalogQuery({ ...filters.value, page: 1 })).length > 0)
 
 // ---- navigation ---------------------------------------------------------
 
@@ -253,25 +271,102 @@ useSeoMeta({
 </script>
 
 <style scoped>
-.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-h1 { text-align: center; margin-bottom: 2rem; }
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem; list-style: none; margin: 0; padding: 0; }
-.pagination { display: flex; justify-content: center; align-items: center; margin-top: 3rem; gap: 1rem; }
-.page-link, .retry-btn { display: inline-block; padding: 0.5rem 1rem; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
-.page-link:hover, .retry-btn:hover { background-color: #34495e; }
-.page-info { font-weight: bold; }
-.results-count { min-height: 1.5rem; color: #4b5563; }
-.error-state, .empty-state { text-align: center; padding: 3rem; background-color: #fff3f3; border-radius: 8px; border: 1px solid #ffcdd2; margin-top: 2rem; }
-.empty-state { background-color: #f8f9fa; border-color: #e9ecef; }
-.retry-btn { margin-top: 1rem; }
-.filters-bar { display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; padding: 1rem 2rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #eaeaea; flex-wrap: wrap; gap: 1rem; }
-.filter-group { display: flex; align-items: center; gap: 0.5rem; }
-.price-group { border: none; margin: 0; padding: 0; }
-.price-group legend { float: left; margin-right: 0.5rem; padding: 0; }
-select { padding: 0.5rem; border: 1px solid #9ca3af; border-radius: 4px; font-size: 1rem; }
-.price-input { width: 80px; padding: 0.5rem; border: 1px solid #9ca3af; border-radius: 4px; }
-.search-bar { margin-bottom: 1.5rem; display: flex; justify-content: center; }
-.search-input { width: 100%; max-width: 600px; padding: 0.75rem 1rem; font-size: 1.1rem; border: 2px solid #d1d5db; border-radius: 8px; }
-:focus-visible { outline: 3px solid #f39c12; outline-offset: 2px; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.catalog-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.search {
+  position: relative;
+  flex: 1 1 320px;
+  max-width: 440px;
+}
+
+.search__icon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search__input {
+  padding-left: 2.5rem;
+  border-radius: var(--radius-full);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.toolbar .field {
+  flex: 1 1 180px;
+}
+
+.price-range {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.price-range legend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+}
+
+.price-range__inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.price-range__inputs .input {
+  min-width: 0;
+}
+
+.toolbar__reset {
+  flex: 0 0 auto;
+  margin-bottom: 4px;
+}
+
+.results-count {
+  min-height: 1.5rem;
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-7);
+}
+
+.pagination__info {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
 </style>

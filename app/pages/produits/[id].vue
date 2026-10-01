@@ -1,6 +1,12 @@
 <template>
-  <main v-if="product" class="product-page">
-    <NuxtLink to="/produits" class="back-link">← Retour au catalogue</NuxtLink>
+  <main v-if="product" class="container product-page">
+    <nav aria-label="Fil d'Ariane" class="breadcrumb">
+      <NuxtLink to="/produits">Catalogue</NuxtLink>
+      <span aria-hidden="true">/</span>
+      <NuxtLink :to="{ path: '/produits', query: { category: product.category } }">{{ product.category }}</NuxtLink>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ product.title }}</span>
+    </nav>
 
     <article class="product">
       <ProductGallery :images="galleryImages" :title="product.title" />
@@ -14,7 +20,7 @@
         <h1 class="product__title">{{ product.title }}</h1>
 
         <p class="product__rating">
-          <span aria-hidden="true">★</span> {{ product.rating.toFixed(1) }} / 5
+          <span class="product__star" aria-hidden="true">★</span> {{ product.rating.toFixed(1) }} / 5
           <span class="product__reviews-count">({{ product.reviews.length }} avis)</span>
         </p>
 
@@ -26,6 +32,7 @@
         </p>
 
         <p class="product__stock" :class="`product__stock--${stock.level}`">
+          <span class="product__stock-dot" aria-hidden="true" />
           {{ stock.label }}
         </p>
 
@@ -34,7 +41,7 @@
 
         <p class="product__description">{{ product.description }}</p>
 
-        <dl class="product__details">
+        <dl class="product__details card">
           <div>
             <dt>Garantie</dt>
             <dd>{{ product.warrantyInformation }}</dd>
@@ -51,7 +58,7 @@
       </div>
     </article>
 
-    <ProductReviews :reviews="product.reviews" />
+    <ProductReviews :reviews="product.reviews" class="product-page__reviews" />
   </main>
 </template>
 
@@ -120,103 +127,163 @@ useSeoMeta({
 </script>
 
 <style scoped>
-.product-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
-.back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  color: #4338ca;
+
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-text);
+}
+
+.breadcrumb [aria-current='page'] {
+  color: var(--color-text);
   font-weight: 500;
 }
+
 .product {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2.5rem;
-  margin-bottom: 3rem;
+  gap: var(--space-7);
+  margin-bottom: var(--space-7);
 }
+
 @media (min-width: 860px) {
   .product {
     grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .product__info {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-5));
   }
 }
+
 .product__meta {
   display: flex;
-  gap: 0.75rem;
-  margin: 0 0 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
 }
+
 .product__category {
-  color: #4338ca;
+  color: var(--color-accent);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
+
 .product__brand {
-  color: #4b5563;
+  color: var(--color-text-muted);
 }
+
 .product__title {
-  margin: 0 0 0.5rem;
-  font-size: 2rem;
-  line-height: 1.2;
+  margin-bottom: var(--space-3);
+  font-size: var(--text-4xl);
+  letter-spacing: -0.03em;
 }
+
 .product__rating {
-  margin: 0 0 1rem;
-  color: #92400e;
+  color: var(--color-text);
   font-weight: 600;
 }
+
+.product__star {
+  color: var(--color-star);
+}
+
 .product__reviews-count {
-  color: #4b5563;
+  color: var(--color-text-muted);
   font-weight: 400;
 }
+
 .product__price {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 0.5rem;
-  font-size: 2rem;
-  font-weight: 700;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
+
 .product__badge {
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  background: #b91c1c;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-sale);
   color: #fff;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0;
 }
+
 .product__stock {
-  margin: 0 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
   font-weight: 600;
+  font-size: var(--text-sm);
 }
-.product__stock--out { color: #b91c1c; }
-.product__stock--low { color: #b45309; }
-.product__stock--available { color: #047857; }
+
+.product__stock-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.product__stock--out { color: var(--color-danger); }
+.product__stock--low { color: var(--color-warning); }
+.product__stock--available { color: var(--color-success); }
+
 .product__description {
-  margin: 1.5rem 0;
-  line-height: 1.6;
-  color: #374151;
+  margin: var(--space-6) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1.7;
 }
+
 .product__details {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
   margin: 0;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  padding: var(--space-4) var(--space-5);
 }
+
 .product__details div {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
+
+.product__details div + div {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
 .product__details dt {
   font-weight: 600;
 }
+
 .product__details dd {
   margin: 0;
   text-align: right;
-  color: #374151;
+  color: var(--color-text-muted);
+}
+
+.product-page__reviews {
+  max-width: 760px;
 }
 </style>

@@ -1,9 +1,14 @@
 <template>
   <main class="container">
-    <h1>Mon panier</h1>
+    <header class="page-header">
+      <h1 class="page-header__title">Mon panier</h1>
+      <p v-if="cart.itemCount > 0" class="page-header__subtitle">
+        {{ cart.itemCount }} article{{ cart.itemCount > 1 ? 's' : '' }}
+      </p>
+    </header>
 
     <!-- Ajustements automatiques (stock baissé, produit supprimé…) -->
-    <ul v-if="cart.notices.length" class="notices" role="status">
+    <ul v-if="cart.notices.length" class="notice notices" role="status">
       <li v-for="notice in cart.notices" :key="notice">{{ notice }}</li>
     </ul>
 
@@ -13,16 +18,16 @@
 
     <div v-else-if="error" class="state state--error" role="alert">
       <p>Impossible de charger les produits de votre panier (erreur réseau).</p>
-      <button type="button" class="button" @click="refresh()">Réessayer</button>
+      <button type="button" class="btn btn--primary" @click="refresh()">Réessayer</button>
     </div>
 
     <div v-else-if="cart.entries.length === 0" class="state">
       <p>Votre panier est vide.</p>
-      <NuxtLink to="/produits" class="button">Voir le catalogue</NuxtLink>
+      <NuxtLink to="/produits" class="btn btn--primary">Découvrir le catalogue</NuxtLink>
     </div>
 
     <div v-else class="cart-layout">
-      <section aria-labelledby="cart-lines-title">
+      <section class="cart-lines-card card" aria-labelledby="cart-lines-title">
         <h2 id="cart-lines-title" class="visually-hidden">Articles</h2>
         <ul class="cart-lines">
           <CartLineItem
@@ -35,16 +40,17 @@
             @remove="onRemove(entry.product.id)"
           />
         </ul>
-        <button type="button" class="link-button" @click="onClear">Vider le panier</button>
+        <button type="button" class="btn btn--danger-ghost btn--sm cart-clear" @click="onClear">Vider le panier</button>
       </section>
 
-      <aside>
+      <aside class="cart-aside">
         <CartSummaryPanel :summary="cart.summary" />
         <PromoCodeForm
           :applied-code="cart.promoCode"
           @apply="cart.applyPromoCode"
           @remove="cart.removePromoCode"
         />
+        <NuxtLink to="/produits" class="btn btn--secondary btn--block cart-continue">Continuer mes achats</NuxtLink>
       </aside>
     </div>
 
@@ -101,64 +107,49 @@ function onClear(): void {
 </script>
 
 <style scoped>
-.container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-h1 { margin-bottom: 1.5rem; }
 .cart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-  gap: 2rem;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  gap: var(--space-6);
   align-items: start;
 }
-.cart-lines { list-style: none; margin: 0; padding: 0; }
-.state {
-  text-align: center;
-  padding: 3rem;
-  border-radius: 8px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+
+.cart-lines-card {
+  padding: var(--space-2) var(--space-5) var(--space-4);
 }
-.state--error { background: #fff3f3; border-color: #ffcdd2; }
-.notices {
-  margin: 0 0 1.5rem;
-  padding: 0.75rem 1rem 0.75rem 2rem;
-  border-radius: 4px;
-  background: #fff4e5;
-  color: #7a4100;
-}
-.button {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background: #2c3e50;
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-}
-.link-button {
-  margin-top: 1rem;
+
+.cart-lines {
+  margin: 0;
   padding: 0;
-  border: none;
-  background: none;
-  color: #b42318;
-  text-decoration: underline;
-  cursor: pointer;
+  list-style: none;
 }
-.button:focus-visible,
-.link-button:focus-visible {
-  outline: 3px solid #f39c12;
-  outline-offset: 2px;
+
+.cart-clear {
+  margin-top: var(--space-2);
+  padding-left: 0;
 }
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+
+.cart-aside {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-5));
 }
-@media (max-width: 860px) {
-  .cart-layout { grid-template-columns: 1fr; }
+
+.cart-continue {
+  margin-top: var(--space-4);
+}
+
+.notices {
+  margin: 0 0 var(--space-5);
+  padding-left: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-aside {
+    position: static;
+  }
 }
 </style>

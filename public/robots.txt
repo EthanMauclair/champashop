@@ -1,2 +1,4 @@
 User-Agent: *
-Disallow:
+Disallow: /panier
+
+Sitemap: https://champashop.vercel.app/sitemap.xml

@@ -47,49 +47,60 @@ const currentImage = computed<string>(() => props.images[selectedIndex.value] ??
 .gallery {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-3);
 }
+
 .gallery__main {
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 1;
-  background: #f9fafb;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
+
 .gallery__image {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  padding: var(--space-6);
 }
+
 .gallery__thumbs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+
 .gallery__thumb {
   padding: 0;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: #f9fafb;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   overflow: hidden;
+  transition: border-color var(--transition);
 }
+
+.gallery__thumb:hover {
+  border-color: var(--color-border-strong);
+}
+
 .gallery__thumb img {
   display: block;
   width: 72px;
   height: 72px;
-  object-fit: cover;
+  object-fit: contain;
+  padding: var(--space-1);
 }
-.gallery__thumb--active {
-  border-color: #111827;
-}
-.gallery__thumb:focus-visible {
-  outline: 3px solid #4f46e5;
-  outline-offset: 2px;
+
+.gallery__thumb--active,
+.gallery__thumb--active:hover {
+  border-color: var(--color-text);
 }
 </style>
