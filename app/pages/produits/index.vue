@@ -89,6 +89,8 @@ interface Product {
   title: string;
   price: number;
   thumbnail: string;
+  category: string;
+  stock: number;
   rating?: number;
   discountPercentage?: number;
 }

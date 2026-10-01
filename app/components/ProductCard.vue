@@ -1,43 +1,52 @@
 <template>
-  <!-- On utilise NuxtLink pour rendre la carte cliquable vers la fiche produit -->
-  <NuxtLink :to="`/produits/${product.id}`" class="product-card">
-    
-    <div class="image-container">
-      <img :src="product.thumbnail" :alt="product.title" class="product-image" >
-      
-      <!-- Le badge de réduction (s'il existe dans vos données) -->
-      <span v-if="product.discountPercentage" class="discount-badge">
-        -{{ Math.round(product.discountPercentage) }}%
-      </span>
-    </div>
-    
-    <h2 class="product-title">{{ product.title }}</h2>
-    
-    <div class="product-rating">
-      ⭐ {{ product.rating }}
-    </div>
-    
-    <div class="product-price">
-      {{ product.price }} €
-    </div>
+  <article class="product-card">
+    <!-- On utilise NuxtLink pour rendre la carte cliquable vers la fiche produit.
+         Le bouton « Ajouter au panier » reste EN DEHORS du lien : un bouton
+         dans un <a> est du HTML invalide et déclencherait la navigation. -->
+    <NuxtLink :to="`/produits/${product.id}`" class="product-link">
+      <div class="image-container">
+        <img :src="product.thumbnail" :alt="product.title" class="product-image" >
 
-  </NuxtLink>
+        <!-- Le badge de réduction (s'il existe dans vos données) -->
+        <span v-if="product.discountPercentage" class="discount-badge">
+          -{{ Math.round(product.discountPercentage) }}%
+        </span>
+      </div>
+
+      <h2 class="product-title">{{ product.title }}</h2>
+
+      <div class="product-rating">
+        ⭐ {{ product.rating }}
+      </div>
+
+      <div class="product-price">
+        {{ product.price }} €
+      </div>
+    </NuxtLink>
+
+    <AddToCartButton :product="product" />
+  </article>
 </template>
 
 <script setup lang="ts">
-defineProps({
-  product: {
-    type: Object,
-    required: true
-  }
-})
+import type { ProductPreview } from '~/types/dummyjson'
+
+defineProps<{
+  product: ProductPreview
+}>()
 </script>
 
 <style scoped>
-.product-card {
+.product-link {
   display: block; /* Important pour que le lien agisse comme une boîte (div) */
   text-decoration: none; /* Enlève le soulignement des liens */
   color: inherit; /* Garde la couleur du texte normal */
+}
+.product-link:focus-visible {
+  outline: 3px solid #f39c12;
+  outline-offset: 2px;
+}
+.product-card {
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1rem;
