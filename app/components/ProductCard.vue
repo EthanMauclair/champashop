@@ -1,22 +1,27 @@
 <template>
-  <article class="product-card">
+  <!-- On utilise NuxtLink pour rendre la carte cliquable vers la fiche produit -->
+  <NuxtLink :to="`/produits/${product.id}`" class="product-card">
+    
     <div class="image-container">
-      <!-- Badge de réduction -->
-      <span v-if="product.discountPercentage" class="discount-badge">
-        -{{ Math.round(product.discountPercentage) }} %
-      </span>
       <img :src="product.thumbnail" :alt="product.title" class="product-image" >
+      
+      <!-- Le badge de réduction (s'il existe dans vos données) -->
+      <span v-if="product.discountPercentage" class="discount-badge">
+        -{{ Math.round(product.discountPercentage) }}%
+      </span>
     </div>
     
     <h2 class="product-title">{{ product.title }}</h2>
     
-    <!-- Note sur 5 -->
-    <div v-if="product.rating" class="product-rating">
-      ⭐ {{ product.rating }} / 5
+    <div class="product-rating">
+      ⭐ {{ product.rating }}
     </div>
     
-    <p class="product-price">{{ product.price }} €</p>
-  </article>
+    <div class="product-price">
+      {{ product.price }} €
+    </div>
+
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +35,9 @@ defineProps({
 
 <style scoped>
 .product-card {
+  display: block; /* Important pour que le lien agisse comme une boîte (div) */
+  text-decoration: none; /* Enlève le soulignement des liens */
+  color: inherit; /* Garde la couleur du texte normal */
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1rem;
