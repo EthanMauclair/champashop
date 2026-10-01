@@ -10,9 +10,15 @@ Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
 
 ## Choix Techniques & Justifications
 
-### F1 (Catalogue) - Stratégie de filtrage par prix
-L'API externe utilisée (DummyJSON) ne supportant pas le filtrage par prix natif, j'ai opté pour une approche hybride (Client/Serveur). Au lieu de paginer via l'API, l'application récupère l'ensemble des produits de la catégorie sélectionnée (en utilisant `limit=0`). Le filtrage de prix, le tri complexe et la pagination sont ensuite appliqués directement en mémoire (côté Nuxt). 
-**Justification :** Bien que cela augmente légèrement la charge de la requête réseau initiale, c'est la seule méthode garantissant une expérience utilisateur (UX) robuste et cohérente. Cela permet aux filtres croisés et à la pagination de fonctionner parfaitement en tandem, évitant ainsi de générer des pages intermédiaires faussement vides.
+### F1 (Catalogue) - Stratégie de filtrage, recherche et pagination
+L'API DummyJSON ne propose ni filtre par prix, ni combinaison recherche + catégorie. Le catalogue charge donc en **une seule requête** tous les produits de la catégorie sélectionnée (`limit=0`), en ne demandant que les champs utiles à l'affichage et à la recherche (`select=title,description,category,price,…`), ce qui réduit fortement le poids de la réponse (les avis, dimensions, QR codes… ne sont pas transférés).
+La recherche plein texte, le filtre de prix, le tri et la pagination (12 par page) sont ensuite faits en mémoire par des **fonctions pures** (`app/utils/catalog.ts`, testées dans `tests/unit/catalog.spec.ts`).
+
+* **Appels réseau** : 1 requête par catégorie (plus 1 pour la liste des catégories). Taper une recherche, changer le prix, le tri ou la page ne déclenche **aucune** requête.
+* **Performance** : environ 200 produits au maximum, filtrés en quelques millisecondes. Le coût est une réponse initiale plus lourde qu'une page de 12 produits, compensé par le `select`.
+* **Pagination** : calculée après filtrage, donc jamais de « fausse » page vide ; une page hors limites est ramenée à la dernière page.
+* **Recherche** : debounce de 300 ms (composable `useDebouncedCallback`). Comme la recherche ne fait pas de requête, aucune ancienne réponse ne peut écraser une plus récente. Seul le changement de catégorie fait une requête, et `useFetch` annule la requête précédente si une nouvelle part.
+* **URL source de vérité** : `q`, `category`, `sortBy`, `order`, `minPrice`, `maxPrice` et `page` sont dans l'URL ; la page est rendue côté serveur, et la pagination utilise de vrais liens (fonctionne sans JavaScript).
 
 ### F4 (Moteur de promotions)
 `app/utils/promotions.ts` expose `computeCart(lines, promoCode?)`, une **fonction pure** (sans Vue ni Pinia) appelée par le store du panier. Tous les montants sont en **centimes entiers** ; l'arrondi commercial (demi vers le haut) est fait en arithmétique entière (`app/utils/money.ts`) pour éviter les erreurs de flottants.
