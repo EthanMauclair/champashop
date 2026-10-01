@@ -1,0 +1,3 @@
+| Date | Outil | Ce que j'ai demandé | Ce que j'ai gardé / modifié / rejeté, et pourquoi |
+| :--- | :--- | :--- | :--- |
+| 01/10 | Claude (Cowork) | Implémenter le moteur de promotions F4 (`computeCart`) et ses tests à partir du sujet | Gardé le découpage en une fonction par règle, appelée dans l'ordre du sujet par `computeCart`. L'arrondi se fait par division entière (`roundHalfUpDivide`) plutôt que `Math.round(x * 0.1)`, pour ne pas dépendre des flottants. Les 8 scénarios sont recalculés dans les tests (ex. scénario 2 : plafond = 25 % de 59,97 € = 14,99 €, donc le code est réduit à 8,99 €). Un test montre la différence entre l'arrondi ligne par ligne et l'arrondi global. |

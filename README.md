@@ -5,7 +5,7 @@ Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
 ## Répartition des rôles
 
 * **Ethan** : [F1 - Catalogue, F2 - Fiche produit...]
-* **[Prénom Coéquipier 1]** : [F3 - Panier, F4 - Moteur de promotions...]
+* **Roman** : F3 - Panier, F4 - Moteur de promotions
 * **[Prénom Coéquipier 2]** : [F5 - Authentification...]
 
 ## Choix Techniques & Justifications
@@ -13,6 +13,12 @@ Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
 ### F1 (Catalogue) - Stratégie de filtrage par prix
 L'API externe utilisée (DummyJSON) ne supportant pas le filtrage par prix natif, j'ai opté pour une approche hybride (Client/Serveur). Au lieu de paginer via l'API, l'application récupère l'ensemble des produits de la catégorie sélectionnée (en utilisant `limit=0`). Le filtrage de prix, le tri complexe et la pagination sont ensuite appliqués directement en mémoire (côté Nuxt). 
 **Justification :** Bien que cela augmente légèrement la charge de la requête réseau initiale, c'est la seule méthode garantissant une expérience utilisateur (UX) robuste et cohérente. Cela permet aux filtres croisés et à la pagination de fonctionner parfaitement en tandem, évitant ainsi de générer des pages intermédiaires faussement vides.
+
+### F4 (Moteur de promotions)
+`app/utils/promotions.ts` expose `computeCart(lines, promoCode?)`, une **fonction pure** (sans Vue ni Pinia) appelée par le store du panier. Tous les montants sont en **centimes entiers** ; l'arrondi commercial (demi vers le haut) est fait en arithmétique entière (`app/utils/money.ts`) pour éviter les erreurs de flottants.
+Chaque règle (remise beauté, code TROYES10, plafond de 25 %, livraison) est une petite fonction exportée et testée séparément ; `computeCart` ne fait que les enchaîner dans l'ordre du sujet.
+Les 8 scénarios d'acceptation sont dans `tests/unit/promotions.spec.ts`. Un seuil de couverture de 90 % (lignes et branches) sur ce fichier est imposé dans `vitest.config.ts` : la CI échoue en dessous.
+> DummyJSON ne gère pas les promotions : ce calcul est fait côté front pour l'exercice. En production il devrait être refait côté serveur.
 
 ## Installation
 
