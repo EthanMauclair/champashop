@@ -1,7 +1,19 @@
 <template>
   <NuxtLink to="/panier" class="cart-link" :aria-label="label">
-    <span aria-hidden="true">🛒 Panier</span>
-    <span class="cart-link__count" aria-hidden="true">{{ cart.itemCount }}</span>
+    <svg class="cart-link__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path
+        d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <circle cx="10" cy="20" r="1.5" fill="currentColor" />
+      <circle cx="17" cy="20" r="1.5" fill="currentColor" />
+    </svg>
+    <span aria-hidden="true">Panier</span>
+    <span v-if="cart.itemCount > 0" class="cart-link__count" aria-hidden="true">{{ cart.itemCount }}</span>
   </NuxtLink>
 </template>
 
@@ -21,26 +33,36 @@ const label = computed<string>(() => {
 .cart-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-text);
   color: #fff;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: bold;
-  padding: 0.4rem 0.75rem;
-  border-radius: 4px;
+  transition: background-color var(--transition);
 }
+
 .cart-link:hover {
-  background-color: #34495e;
+  background: #000;
+  color: #fff;
 }
-.cart-link:focus-visible {
-  outline: 3px solid #f39c12;
-  outline-offset: 2px;
+
+.cart-link__icon {
+  flex-shrink: 0;
 }
+
 .cart-link__count {
-  min-width: 1.5rem;
-  padding: 0 0.4rem;
-  border-radius: 999px;
-  background-color: #fff;
-  color: #2c3e50;
-  text-align: center;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: #fff;
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 700;
 }
 </style>
