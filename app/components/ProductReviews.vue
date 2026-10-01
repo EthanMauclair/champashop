@@ -43,45 +43,43 @@ function formatDate(isoDate: string): string {
 
 <style scoped>
 .reviews h2 {
-  font-size: 1.25rem;
-  margin: 0 0 1rem;
+  margin-bottom: var(--space-4);
 }
+
 .reviews__list {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+
 .reviews__item {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
+
 .reviews__header {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  margin: 0 0 0.5rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
 }
+
 .reviews__rating {
-  color: #b45309;
+  color: var(--color-star);
   letter-spacing: 0.1em;
 }
+
 .reviews__comment {
-  margin: 0 0 0.25rem;
+  margin-bottom: var(--space-1);
 }
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
+
 .reviews__date {
   margin: 0;
-  color: #4b5563;
-  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 </style>
