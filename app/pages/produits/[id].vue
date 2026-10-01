@@ -11,7 +11,7 @@
       
       <!-- Colonne Image -->
       <div class="product-image-container">
-        <img :src="product.thumbnail" :alt="product.title" />
+        <img :src="product.thumbnail" :alt="product.title" >
       </div>
 
       <!-- Colonne Informations -->

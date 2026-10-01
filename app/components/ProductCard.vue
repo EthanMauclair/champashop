@@ -3,7 +3,7 @@
   <NuxtLink :to="`/produits/${product.id}`" class="product-card">
     
     <div class="image-container">
-      <img :src="product.thumbnail" :alt="product.title" class="product-image" />
+      <img :src="product.thumbnail" :alt="product.title" class="product-image" >
       
       <!-- Le badge de réduction (s'il existe dans vos données) -->
       <span v-if="product.discountPercentage" class="discount-badge">
