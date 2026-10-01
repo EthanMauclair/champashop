@@ -16,16 +16,17 @@
     </div>
     
     <p class="product-price">{{ product.price }} €</p>
+
+    <AddToCartButton :product="product" />
   </article>
 </template>
 
 <script setup lang="ts">
-defineProps({
-  product: {
-    type: Object,
-    required: true
-  }
-})
+import type { ProductPreview } from '~/types/dummyjson'
+
+defineProps<{
+  product: ProductPreview
+}>()
 </script>
 
 <style scoped>
