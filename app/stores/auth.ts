@@ -123,12 +123,15 @@ export const useAuthStore = defineStore('auth', (): AuthStore => {
   /** Requête vers l'API DummyJSON avec `Authorization: Bearer <accessToken>`. */
   function authFetch<T>(path: string, options: AuthFetchOptions = {}): Promise<T> {
     return authRequest<T>(accessToken =>
+      // Dans une fonction générique, TypeScript ne peut pas simplifier le type
+      // « TypedInternalResponse » de $fetch (prévu pour les routes internes de
+      // Nuxt) : pour une URL externe, c'est bien le JSON de type T qui revient.
       $fetch<T>(`${API_URL}${path}`, {
         method: options.method ?? 'GET',
         body: options.body,
         query: options.query,
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      }),
+      }) as Promise<T>,
     )
   }
 
