@@ -35,6 +35,9 @@
         </li>
       </ul>
 
+      <!-- Produits vus récemment (F7) : absent si l'historique est vide -->
+      <RecentlyViewed />
+
       <!-- Catégories -->
       <section class="section" aria-labelledby="categories-title">
         <div class="section__header">

@@ -66,6 +66,15 @@ Le composant `AddToCartButton` est réutilisable : il est branché sur les carte
 * **Déconnexion** : suppression des cookies et de l'état, retour à l'accueil.
 * **Limite assumée** : les cookies ne sont pas `httpOnly`, car le navigateur doit lire le jeton pour l'en-tête `Authorization`. En production, on passerait par un proxy serveur (BFF) avec des cookies `httpOnly`, inaccessibles à un script injecté (XSS).
 
+### F7 (Produits vus récemment) - Cookie et chargement des produits
+Chaque visite d'une fiche produit **existante** place son identifiant en tête de l'historique (sans doublon, 10 au maximum). La logique est dans des fonctions pures (`app/utils/recentlyViewed.ts`, testées dans `tests/unit/recentlyViewed.spec.ts`) ; le store Pinia `recentlyViewed` gère l'état et le cookie.
+
+* **Cookie `recently_viewed`** : identifiants uniquement, tableau JSON encodé (`%5B17%2C3%5D` pour `[17,3]`), 30 jours, `sameSite: lax`. Il est lu par `useCookie` côté serveur : la liste est dans le HTML initial, et l'état Pinia est transmis au client (pas de flash, pas d'erreur d'hydratation).
+* **Cookie corrompu** (JSON invalide, valeurs non numériques, doublons, plus de 10 identifiants) : `parseRecentlyViewedCookie` ne lève jamais d'erreur, ne garde que les entiers positifs, et le cookie est réécrit propre (ou supprimé s'il ne reste rien).
+* **404** : le suivi est appelé après les vérifications de la fiche, donc un produit inexistant n'est jamais ajouté. Un produit de l'historique supprimé depuis (404 au rechargement) en est retiré.
+* **Stratégie de chargement** : DummyJSON ne sait pas renvoyer plusieurs produits par identifiants. On fait **une requête par produit manquant, en parallèle** (`Promise.allSettled`), avec `select=title,price,thumbnail,category` (≈ 200 octets par produit). Le produit de la fiche visitée est mémorisé directement, sans requête. Au pire 10 petites requêtes simultanées côté serveur, dont la durée est celle de la plus lente ; l'échec de l'une n'empêche pas l'affichage des autres. Alternative écartée : charger tout le catalogue (`limit=0`, ≈ 37 Ko même avec `select`) pour en afficher 10, coût qui grandit avec le catalogue.
+* **Affichage** : sur l'accueil et en bas de la fiche produit (sans le produit en cours), liste défilante horizontalement. « Effacer l'historique » supprime le cookie, annonce « Votre historique de navigation a été effacé » (`role="status"`) et replace le focus sur le titre de la section.
+
 ### Design, accessibilité et référencement
 * **Design « moderne minimal » en CSS pur**, sans dépendance supplémentaire : `app/assets/css/main.css` définit les variables (couleurs, espacements, rayons), la base typographique (police Inter), les boutons (`.btn`), les champs (`.input`, `.select`) et les états (`.state`, `.notice`). Les composants n'utilisent que ces variables.
 * **Accessibilité** : `lang="fr"`, lien d'évitement, focus visible partout, champs tous associés à un label, contrastes AA, annonces `aria-live` (résultats, ajout au panier), galerie et quantités utilisables au clavier.
