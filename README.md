@@ -1,15 +1,32 @@
 # ChampaShop - Vitrine en ligne
 
-Boutique fictive développée en équipe avec Nuxt, Vue 3, TypeScript (strict), Pinia et Vitest.
+Boutique fictive développée en équipe avec **Nuxt 4.5**, Vue 3.5, TypeScript 6 (strict), Pinia 4 et Vitest 5.
 
 **Version actuelle : v0.1.0** (fin de semaine 1, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
+
+## Stack technique
+
+Versions installées (verrouillées par `package-lock.json`) :
+
+| Outil | Version | Rôle |
+| :--- | :--- | :--- |
+| Node.js | 22 (CI) | Environnement d'exécution |
+| **Nuxt** | **4.5.2** | Framework (SSR, routage, `useFetch`, `useCookie`) |
+| Vue | 3.5.43 | Composants `<script setup>` |
+| Vue Router | 5.3.1 | Routage (via Nuxt) |
+| Pinia / @pinia/nuxt | 4.0.3 / 1.0.2 | Stores (panier, authentification) |
+| TypeScript / vue-tsc | 6.0.3 / 3.3.11 | Typage strict, `nuxi typecheck` |
+| Vitest / @vitest/coverage-v8 | 5.0.1 | Tests unitaires et couverture |
+| @nuxt/test-utils | 4.3.2 | Environnement de test Nuxt |
+| ESLint / @nuxt/eslint | 10.11.0 / 1.17.0 | Lint (`no-explicit-any` en erreur) |
+| Prettier | 3.9.9 | Formatage |
 
 ## Répartition des rôles
 
 * **Ethan** : initialisation du projet (dépôt, CI, déploiement Vercel, template de PR), F1 - Catalogue, F2 - Fiche produit
 * **Roman** : F3 - Panier, F4 - Moteur de promotions, F5 - Authentification, mise en conformité F1/F2, refonte design et page d'accueil
 
-> **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
+> **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (version **4.5.2** ici ; code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
 
 ## Choix Techniques & Justifications
 
