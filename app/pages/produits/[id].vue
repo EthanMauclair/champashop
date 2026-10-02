@@ -59,6 +59,9 @@
     </article>
 
     <ProductReviews :reviews="product.reviews" class="product-page__reviews" />
+
+    <!-- Historique sans le produit en cours (F7) -->
+    <RecentlyViewed :exclude-id="product.id" class="product-page__recent" />
   </main>
 </template>
 
@@ -68,6 +71,7 @@ import type { Product } from '~/types/dummyjson'
 import { eurosToCents, formatCents } from '~/utils/money'
 import type { StockStatus } from '~/types/stock'
 import { getStockStatus } from '~/utils/stock'
+import { useRecentlyViewedStore } from '~/stores/recentlyViewed'
 
 const API_URL = 'https://dummyjson.com/products'
 const DESCRIPTION_MAX_LENGTH = 160
@@ -100,6 +104,13 @@ if (error.value) {
 if (!product.value) {
   throw createError({ statusCode: 404, statusMessage: 'Produit introuvable', fatal: true })
 }
+
+/*
+ * F7 : on arrive ici seulement si le produit existe (les 404 / 503 ont levé
+ * une erreur plus haut). Appelé pendant le rendu serveur : le cookie
+ * recently_viewed est mis à jour dès la réponse HTML.
+ */
+useRecentlyViewedStore().track(product.value)
 
 const stock = computed<StockStatus>(() => getStockStatus(product.value?.stock ?? 0))
 
@@ -285,5 +296,9 @@ useSeoMeta({
 
 .product-page__reviews {
   max-width: 760px;
+}
+
+.product-page__recent {
+  margin-top: var(--space-7);
 }
 </style>
