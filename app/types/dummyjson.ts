@@ -72,3 +72,36 @@ export interface Category {
   name: string
   url: string
 }
+
+/* ---- Authentification (https://dummyjson.com/docs/auth) ---------------- */
+
+/** Jetons renvoyés par POST /auth/login et POST /auth/refresh. */
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+}
+
+/**
+ * Utilisateur connecté. GET /auth/me renvoie beaucoup plus de champs
+ * (adresse, banque…) : on ne garde que ceux affichés par l'application.
+ */
+export interface User {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  gender: string
+  image: string
+}
+
+/** Réponse de POST /auth/login : l'utilisateur et ses jetons. */
+export type LoginResponse = User & AuthTokens
+
+/** Corps de POST /auth/login. */
+export interface LoginCredentials {
+  username: string
+  password: string
+  /** Durée de validité de l'accessToken (1 minute pour tester le rafraîchissement). */
+  expiresInMins?: number
+}

@@ -12,6 +12,15 @@
         <nav aria-label="Navigation principale">
           <ul class="nav">
             <li><NuxtLink to="/produits" class="nav__link">Catalogue</NuxtLink></li>
+            <li v-if="auth.user">
+              <NuxtLink to="/compte" class="nav__link nav__account">
+                <img :src="auth.user.image" alt="" class="nav__avatar" width="24" height="24">
+                {{ auth.user.firstName }}
+              </NuxtLink>
+            </li>
+            <li v-else>
+              <NuxtLink to="/connexion" class="nav__link">Connexion</NuxtLink>
+            </li>
             <li><CartLink /></li>
           </ul>
         </nav>
@@ -37,6 +46,12 @@
     </footer>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
+const auth = useAuthStore()
+</script>
 
 <style scoped>
 .layout {
@@ -143,6 +158,17 @@
 .nav__link.router-link-active {
   background: var(--color-surface-muted);
   color: var(--color-text);
+}
+
+.nav__account {
+  gap: var(--space-2);
+}
+
+.nav__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
 }
 
 /* ---- Pied de page ----------------------------------------------------- */

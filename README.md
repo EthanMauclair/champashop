@@ -6,7 +6,7 @@ Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
 
 * **Ethan** : [F1 - Catalogue, F2 - Fiche produit...]
 * **Roman** : F3 - Panier, F4 - Moteur de promotions
-* **[Prénom Coéquipier 2]** : [F5 - Authentification...]
+* **Roman** : F5 - Authentification
 
 ## Choix Techniques & Justifications
 
@@ -36,6 +36,15 @@ Le panier est un store Pinia (`app/stores/cart.ts`) persisté avec `useCookie` :
 Le titre, le prix, la catégorie, le stock et l'image ne sont **pas** stockés : sur `/panier`, ils sont rechargés côté serveur depuis DummyJSON (`/products/{id}?select=...`, uniquement pour les produits inconnus du store). Avantages : cookie minuscule, prix et stock toujours à jour (un prix modifié dans le cookie n'a aucun effet), et le stock est revérifié à chaque chargement (la quantité est ramenée au stock, avec un message, s'il a baissé).
 La logique (ajout, quantité, stock, lecture/écriture du cookie) est faite par des fonctions pures dans `app/utils/cart.ts`, testées dans `tests/unit/cart.spec.ts`. Le store ne fait que les appeler et persister le résultat.
 Le composant `AddToCartButton` est réutilisable : il est branché sur les cartes du catalogue et peut être inséré dans la fiche produit (F2) avec `<AddToCartButton :product="product" />`. Il gère déjà l'état « Rupture de stock » (bouton désactivé).
+
+### F5 (Authentification DummyJSON)
+* **Endpoints** (vérifiés sur dummyjson.com/docs/auth) : `POST /auth/login` (`username`, `password`, `expiresInMins`), `GET /auth/me` (`Authorization: Bearer`), `POST /auth/refresh` (`refreshToken`, `expiresInMins`).
+* **Jetons en cookies** (`champashop_access`, `champashop_refresh`) via `useCookie` : ils sont lisibles côté serveur, donc le plugin `app/plugins/auth.server.ts` charge l'utilisateur (`GET /auth/me`) pendant le rendu SSR et l'état Pinia arrive déjà rempli dans le navigateur : pas de « flash » de l'état déconnecté.
+* **Middleware `auth`** (`app/middleware/auth.ts`) sur `/compte` : redirection vers `/connexion?redirect=/compte`, puis retour à la page demandée après connexion. Le paramètre `redirect` est validé (`sanitizeRedirect`) pour éviter une redirection vers un site externe.
+* **Rafraîchissement single-flight** : toutes les requêtes authentifiées passent par `authFetch` (store `app/stores/auth.ts`). En cas de 401, le jeton est rafraîchi par `createSingleFlight` : si plusieurs requêtes reçoivent une 401 en même temps, un seul `POST /auth/refresh` part, puis toutes les requêtes sont rejouées (`createAuthRequest`, `app/utils/auth.ts`, testé dans `tests/unit/auth.spec.ts`). Le store étant créé par requête côté serveur, le single-flight n'est jamais partagé entre deux visiteurs.
+* **Tester avec `expiresInMins: 1`** : sur `/connexion`, cocher « Session de test (1 minute) », attendre une minute, puis sur `/compte` cliquer « Lancer 3 requêtes simultanées » : le panneau affiche le nombre d'appels à `/auth/refresh` (1 attendu).
+* **Déconnexion** : suppression des cookies et de l'état, retour à l'accueil.
+* **Limite assumée** : les cookies ne sont pas `httpOnly`, car le navigateur doit lire le jeton pour l'en-tête `Authorization`. En production, on passerait par un proxy serveur (BFF) avec des cookies `httpOnly`, inaccessibles à un script injecté (XSS).
 
 ### Design, accessibilité et référencement
 * **Design « moderne minimal » en CSS pur**, sans dépendance supplémentaire : `app/assets/css/main.css` définit les variables (couleurs, espacements, rayons), la base typographique (police Inter), les boutons (`.btn`), les champs (`.input`, `.select`) et les états (`.state`, `.notice`). Les composants n'utilisent que ces variables.
