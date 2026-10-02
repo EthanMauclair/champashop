@@ -1,5 +1,6 @@
 {
   "name": "champashop",
+  "version": "0.1.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,6 +10,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "nuxi typecheck",
     "test": "vitest",
     "test:coverage": "vitest --coverage",

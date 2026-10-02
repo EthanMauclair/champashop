@@ -1,12 +1,15 @@
 # ChampaShop - Vitrine en ligne
 
-Boutique fictive développée en équipe avec Nuxt 3, Vue 3 et TypeScript.
+Boutique fictive développée en équipe avec Nuxt, Vue 3, TypeScript (strict), Pinia et Vitest.
+
+**Version actuelle : v0.1.0** (fin de semaine 1, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
 
 ## Répartition des rôles
 
-* **Ethan** : [F1 - Catalogue, F2 - Fiche produit...]
-* **Roman** : F3 - Panier, F4 - Moteur de promotions
-* **Roman** : F5 - Authentification
+* **Ethan** : initialisation du projet (dépôt, CI, déploiement Vercel, template de PR), F1 - Catalogue, F2 - Fiche produit
+* **Roman** : F3 - Panier, F4 - Moteur de promotions, F5 - Authentification, mise en conformité F1/F2, refonte design et page d'accueil
+
+> **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
 
 ## Choix Techniques & Justifications
 
@@ -59,7 +62,8 @@ Le composant `AddToCartButton` est réutilisable : il est branché sur les carte
 ## Scripts utiles
 
 * `npm run dev` : Lancer le serveur de développement local.
-* `npm run lint` : Vérifier le code avec ESLint.
+* `npm run lint` : Vérifier le code avec ESLint (règle `@typescript-eslint/no-explicit-any` en erreur).
+* `npm run format` / `npm run format:check` : Formater / vérifier le formatage avec Prettier (`.prettierrc.json`).
 * `npm run typecheck` : Vérifier strictement les types TypeScript.
 * `npm run test` : Lancer les tests unitaires avec Vitest.
 * `npm run test:coverage` : Générer le rapport de couverture des tests.
@@ -73,6 +77,9 @@ Nous suivons un modèle GitFlow strict :
 * **develop** : Branche d'intégration protégée. Merge autorisé uniquement via Pull Request approuvée.
 * **Branches de fonctionnalités** : `feature/<id>-<description>` créées depuis `develop`.
 * **Commits** : Format Conventional Commits imposé (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`).
+* **Pull Requests** : une issue = une branche = une PR vers `develop`, template rempli, `Closes #<n°>`, CI verte et une review approuvée d'un coéquipier ; merge en « Create a merge commit », branche supprimée après merge.
+* **Releases** : `release/vX.Y.Z` créée depuis `develop` (seulement corrections, version, CHANGELOG), mergée dans `main` et `develop`, tag annoté `vX.Y.Z` sur `main` et GitHub Release.
+* **Hotfix** : `hotfix/<desc>` depuis `main`, mergée dans `main` et `develop`, version patch (ex. `v0.1.1`).
 
 ## Déploiement
 
