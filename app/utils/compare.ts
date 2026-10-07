@@ -7,7 +7,15 @@
  * est encodée pour l'URL (`3%2C17%2C42`), la virgule n'étant pas un caractère
  * autorisé dans une valeur de cookie.
  */
-import type { CompareToggleResult } from '../types/compare'
+import type {
+  CompareCell,
+  CompareLoadResult,
+  CompareRow,
+  CompareRowKey,
+  CompareTableProduct,
+  CompareToggleResult,
+} from '../types/compare'
+import { eurosToCents, formatCents } from './money'
 import { isValidProductId } from './recentlyViewed'
 
 /** Nombre maximum de produits comparés. */
@@ -114,4 +122,199 @@ export function serializeCompareCookie(ids: number[]): string {
  */
 export function toComparePath(ids: number[]): string {
   return ids.length > 0 ? `${COMPARE_PATH}?ids=${formatCompareIds(ids)}` : COMPARE_PATH
+}
+
+/* ---- Page /comparer ------------------------------------------------------ */
+
+/**
+ * Vrai si les deux sélections contiennent les mêmes produits, quel que soit
+ * l'ordre (le cookie `3,17` et l'URL `17,3` désignent la même sélection).
+ */
+export function isSameSelection(a: number[], b: number[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id))
+}
+
+/**
+ * Vrai si le paramètre d'URL `ids` est déjà sous sa forme normalisée.
+ * Sinon, la page remplace l'URL (navigateTo(..., { replace: true })).
+ * Sélection vide : la forme normalisée est l'absence du paramètre.
+ */
+export function isCanonicalCompareQuery(rawIds: unknown, ids: number[]): boolean {
+  if (ids.length === 0) {
+    return rawIds === undefined
+  }
+  return rawIds === formatCompareIds(ids)
+}
+
+/** Vrai si l'erreur est une réponse HTTP 404 de $fetch (produit inexistant). */
+function isNotFoundError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'statusCode' in error && error.statusCode === 404
+}
+
+/**
+ * Trie les résultats des requêtes parallèles (Promise.allSettled), dans
+ * l'ordre des identifiants demandés :
+ * - succès → produit affiché (l'id demandé est forcé) ;
+ * - 404 → produit inexistant, à retirer de l'URL ;
+ * - autre échec (réseau…) → produit non affiché, mais gardé dans l'URL.
+ * L'échec d'un produit n'empêche jamais l'affichage des autres.
+ */
+export function splitCompareResults(
+  ids: number[],
+  results: PromiseSettledResult<Omit<CompareTableProduct, 'id'>>[],
+): CompareLoadResult {
+  const loaded: CompareLoadResult = { products: [], notFoundIds: [], failedIds: [] }
+  for (const [index, id] of ids.entries()) {
+    const result = results[index]
+    if (result?.status === 'fulfilled') {
+      loaded.products.push({ ...result.value, id })
+    } else if (result && isNotFoundError(result.reason)) {
+      loaded.notFoundIds.push(id)
+    } else {
+      loaded.failedIds.push(id)
+    }
+  }
+  return loaded
+}
+
+/** Sens de comparaison d'une ligne : la plus petite ou la plus grande valeur gagne. */
+export type BestDirection = 'lowest' | 'highest'
+
+/**
+ * Indices des meilleures valeurs d'une ligne. Ex aequo : tous sont gardés.
+ * Aucune meilleure valeur s'il y a moins de 2 produits ou si toutes les
+ * valeurs sont égales (tout mettre en évidence n'aurait pas de sens).
+ */
+export function findBestIndexes(values: number[], direction: BestDirection): number[] {
+  if (values.length < 2) {
+    return []
+  }
+  const best = direction === 'lowest' ? Math.min(...values) : Math.max(...values)
+  const indexes = values.flatMap((value, index) => (value === best ? [index] : []))
+  return indexes.length === values.length ? [] : indexes
+}
+
+/** Traduction des valeurs `availabilityStatus` de DummyJSON. */
+const AVAILABILITY_LABELS: Record<string, string> = {
+  'In Stock': 'En stock',
+  'Low Stock': 'Stock faible',
+  'Out of Stock': 'Rupture de stock',
+}
+
+const decimalFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 })
+
+/** Arrondi à 1 décimale : la note est comparée telle qu'elle est affichée. */
+function roundRating(rating: number): number {
+  return Math.round(rating * 10) / 10
+}
+
+/** Description d'une ligne : libellé, texte affiché et, si comparable, valeur numérique. */
+interface RowDefinition {
+  key: CompareRowKey
+  label: string
+  text: (product: CompareTableProduct) => string
+  best?: { label: string; direction: BestDirection; value: (product: CompareTableProduct) => number }
+}
+
+/*
+ * Ordre et contenu des lignes. L'image et le titre ne sont pas répétés ici :
+ * ils forment les en-têtes de colonnes (<th scope="col">) du tableau.
+ * DummyJSON ne précise pas les unités : poids en kg et dimensions en cm.
+ */
+const ROWS: RowDefinition[] = [
+  {
+    key: 'price',
+    label: 'Prix',
+    text: (product) => formatCents(eurosToCents(product.price)),
+    best: { label: 'Meilleur prix', direction: 'lowest', value: (product) => eurosToCents(product.price) },
+  },
+  {
+    key: 'discount',
+    label: 'Remise',
+    text: (product) => {
+      const discount = Math.round(product.discountPercentage)
+      return discount > 0 ? `−${discount} %` : 'Aucune'
+    },
+    best: {
+      label: 'Meilleure remise',
+      direction: 'highest',
+      value: (product) => Math.round(product.discountPercentage),
+    },
+  },
+  {
+    key: 'rating',
+    label: 'Note',
+    text: (product) => `${decimalFormatter.format(roundRating(product.rating))} / 5`,
+    best: { label: 'Meilleure note', direction: 'highest', value: (product) => roundRating(product.rating) },
+  },
+  {
+    key: 'availability',
+    label: 'Disponibilité',
+    text: (product) => AVAILABILITY_LABELS[product.availabilityStatus] ?? product.availabilityStatus,
+  },
+  {
+    key: 'stock',
+    label: 'Stock',
+    text: (product) => `${product.stock} unité${product.stock > 1 ? 's' : ''}`,
+    best: { label: 'Plus grand stock', direction: 'highest', value: (product) => product.stock },
+  },
+  {
+    key: 'brand',
+    label: 'Marque',
+    text: (product) => product.brand ?? 'Non renseignée',
+  },
+  {
+    key: 'category',
+    label: 'Catégorie',
+    text: (product) => product.category,
+  },
+  {
+    key: 'weight',
+    label: 'Poids',
+    text: (product) => `${decimalFormatter.format(product.weight)} kg`,
+  },
+  {
+    key: 'dimensions',
+    label: 'Dimensions (l × h × p)',
+    text: ({ dimensions }) =>
+      `${[dimensions.width, dimensions.height, dimensions.depth].map((value) => decimalFormatter.format(value)).join(' × ')} cm`,
+  },
+  {
+    key: 'warranty',
+    label: 'Garantie',
+    text: (product) => product.warrantyInformation,
+  },
+  {
+    key: 'shipping',
+    label: 'Livraison',
+    text: (product) => product.shippingInformation,
+  },
+]
+
+/**
+ * Construit les lignes du tableau comparatif : une cellule par produit,
+ * la meilleure valeur mise en évidence (avec un libellé texte, pas
+ * seulement une couleur) et un indicateur « valeurs identiques ».
+ */
+export function buildCompareRows(products: CompareTableProduct[]): CompareRow[] {
+  return ROWS.map((row) => {
+    const bestIndexes = row.best ? findBestIndexes(products.map(row.best.value), row.best.direction) : []
+    const cells: CompareCell[] = products.map((product, index) => ({
+      productId: product.id,
+      text: row.text(product),
+      best: bestIndexes.includes(index),
+    }))
+    return {
+      key: row.key,
+      label: row.label,
+      cells,
+      bestLabel: row.best?.label ?? null,
+      identical: cells.every((cell) => cell.text === cells[0]?.text),
+    }
+  })
+}
+
+/** Option « Afficher uniquement les différences » : masque les lignes identiques. */
+export function filterCompareRows(rows: CompareRow[], onlyDifferences: boolean): CompareRow[] {
+  return onlyDifferences ? rows.filter((row) => !row.identical) : rows
 }
