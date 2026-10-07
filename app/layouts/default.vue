@@ -44,6 +44,10 @@
         </ul>
       </div>
     </footer>
+
+    <!-- Comparateur (F6) : visible pendant toute la navigation dès qu'un
+         produit est sélectionné. -->
+    <CompareBar />
   </div>
 </template>
 

@@ -30,6 +30,7 @@
 
     <div class="product-card__actions">
       <AddToCartButton :product="product" compact />
+      <CompareButton :product="product" compact />
     </div>
   </article>
 </template>
@@ -160,6 +161,8 @@ const discount = computed<number>(() => Math.round(props.product.discountPercent
 }
 
 .product-card__actions {
+  display: grid;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4) var(--space-4);
 }
 </style>
