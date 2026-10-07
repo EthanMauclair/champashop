@@ -15,7 +15,7 @@
             <li v-if="auth.user">
               <NuxtLink to="/compte" class="nav__link nav__account">
                 <img :src="auth.user.image" alt="" class="nav__avatar" width="24" height="24">
-                {{ auth.user.firstName }}
+                <span class="nav__account-name">{{ auth.user.firstName }}</span>
               </NuxtLink>
             </li>
             <li v-else>
@@ -173,6 +173,52 @@ const auth = useAuthStore()
   height: 24px;
   border-radius: 50%;
   background: var(--color-surface-muted);
+}
+
+/*
+ * Petits écrans : la navigation ne doit jamais faire déborder la page
+ * (aucun défilement horizontal entre 320 et 640 px), même connecté avec
+ * un prénom long et un panier rempli. Les zones cliquables gardent 40 px
+ * de haut.
+ */
+@media (max-width: 640px) {
+  .site-header__inner {
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
+  }
+
+  /* Le lien garde son nom accessible (aria-label « ChampaShop, accueil »). */
+  .brand__name {
+    display: none;
+  }
+
+  .nav {
+    gap: var(--space-1);
+  }
+
+  .nav__link {
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  /* Prénom long : tronqué à l'écran, lu en entier par les lecteurs d'écran. */
+  .nav__account-name {
+    max-width: 6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Avatar décoratif (alt="") masqué pour laisser la place au prénom. */
+  .nav__avatar {
+    display: none;
+  }
+
+  .nav__account-name {
+    max-width: 4rem;
+  }
 }
 
 /* ---- Pied de page ----------------------------------------------------- */
