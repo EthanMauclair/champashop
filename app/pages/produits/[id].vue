@@ -38,6 +38,7 @@
 
         <!-- Désactivé et « Rupture de stock » à 0 : géré par le composant -->
         <AddToCartButton :product="product" />
+        <CompareButton :product="product" class="product__compare" />
 
         <p class="product__description">{{ product.description }}</p>
 
@@ -258,6 +259,10 @@ useSeoMeta({
 .product__stock--out { color: var(--color-danger); }
 .product__stock--low { color: var(--color-warning); }
 .product__stock--available { color: var(--color-success); }
+
+.product__compare {
+  margin-top: var(--space-3);
+}
 
 .product__description {
   margin: var(--space-6) 0;
