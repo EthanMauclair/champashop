@@ -32,3 +32,9 @@
   * Mise à jour de la version de Node.js (`actions/setup-node@v4`) vers la version **22** pour supporter les fonctions JavaScript modernes requises par la configuration ESLint "Flat Config".
 * **Problème 2 (Vitest) :** La CI échouait avec `No test files found, exiting with code 1`.
 * **Aide de l'IA :** Restructuration du dossier de tests pour correspondre à la configuration stricte du projet. Déplacement du fichier de test basique `app.test.ts` vers le chemin attendu : `test/unit/app.test.ts`.
+
+## Semaine 2
+
+| Date | Outil | Ce que j'ai demandé | Ce que j'ai gardé / modifié / rejeté, et pourquoi |
+| :--- | :--- | :--- | :--- |
+| 07/10 | Claude Code | Implémenter F6a (#26) : `parseCompareIds`, `toggleCompare` et leurs tests, store `compare`, bouton « Comparer » et barre de comparaison | Gardé la même architecture que F7 (fonctions pures testées / store + cookie / composants) et la réutilisation de `isValidProductId`. Choix vérifié : `rejected` ne vaut `true` que si le comparateur est plein (un identifiant invalide ne doit pas afficher « Comparateur plein »). Gardé un libellé fixe « Comparer » avec `aria-pressed` plutôt qu'un texte qui change, et la barre en `sticky` plutôt qu'en `fixed` pour ne jamais masquer le pied de page. Vérifié dans le navigateur : 4ᵉ produit refusé avec message, cookie corrompu (`abc,5,5,,7,8,9,10`) réécrit en `5,7,8`, barre présente dans le HTML serveur. |

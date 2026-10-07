@@ -66,6 +66,15 @@ Le composant `AddToCartButton` est réutilisable : il est branché sur les carte
 * **Déconnexion** : suppression des cookies et de l'état, retour à l'accueil.
 * **Limite assumée** : les cookies ne sont pas `httpOnly`, car le navigateur doit lire le jeton pour l'en-tête `Authorization`. En production, on passerait par un proxy serveur (BFF) avec des cookies `httpOnly`, inaccessibles à un script injecté (XSS).
 
+### F6 (Comparateur de produits) - Sélection et cookie `compare`
+La logique est dans des fonctions pures (`app/utils/compare.ts`, testées dans `tests/unit/compare.spec.ts`) : `parseCompareIds(raw, max = 3)` et `toggleCompare(ids, id, max = 3)`. Le store Pinia `compare` gère l'état et le cookie.
+
+* **Bouton « Comparer »** (`CompareButton`) sur chaque carte du catalogue et sur la fiche produit : bouton bascule avec `aria-pressed` (son libellé ne change pas, c'est l'état « activé » qui est annoncé).
+* **3 produits maximum** : au 4ᵉ, `toggleCompare` renvoie `rejected: true`, rien n'est ajouté et « Comparateur plein : retirez un produit pour en ajouter un autre » est annoncé (`role="status"`, `aria-live="polite"`). Le message disparaît dès qu'une place se libère.
+* **Barre « Comparer (n/3) »** (`CompareBar`, dans le layout) : miniatures, bouton de retrait par produit (le focus revient sur le titre de la barre) et lien vers `/comparer?ids=…`. Elle est en `position: sticky` en bas de l'écran : visible pendant toute la navigation, mais en fin de page elle prend sa propre place et ne masque jamais le pied de page.
+* **Cookie `compare`** : identifiants uniquement, dans l'ordre de sélection, séparés par des virgules et encodés (`3%2C17%2C42`, la virgule n'étant pas autorisée dans une valeur de cookie), 30 jours, `sameSite: lax`. Il est lu par `useCookie` côté serveur : la barre et l'état des boutons sont dans le HTML initial. Un cookie modifié à la main (`abc`, doublons, plus de 3 identifiants) est nettoyé par `parseCompareIds` puis réécrit propre ; il ne fait jamais planter la page.
+* **Miniatures** : le produit cliqué est mémorisé directement. Après un rechargement, les produits inconnus sont chargés côté serveur en parallèle (3 requêtes au plus, `select=title,thumbnail`) ; un produit supprimé (404) est retiré de la sélection.
+
 ### F7 (Produits vus récemment) - Cookie et chargement des produits
 Chaque visite d'une fiche produit **existante** place son identifiant en tête de l'historique (sans doublon, 10 au maximum). La logique est dans des fonctions pures (`app/utils/recentlyViewed.ts`, testées dans `tests/unit/recentlyViewed.spec.ts`) ; le store Pinia `recentlyViewed` gère l'état et le cookie.
 
