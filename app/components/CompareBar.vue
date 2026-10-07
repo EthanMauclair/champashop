@@ -184,19 +184,26 @@ async function removeItem(id: number): Promise<void> {
   color: var(--color-danger);
 }
 
-/* Petits écrans : seules les miniatures restent, les noms sont masqués
-   visuellement mais gardés pour les lecteurs d'écran via aria-label. */
+/*
+ * Petits écrans : barre compacte (titre et lien sur une ligne, miniatures
+ * en dessous) pour ne pas occuper l'écran. Les noms sont masqués ; chaque
+ * bouton de retrait garde le nom du produit dans son aria-label.
+ */
 @media (max-width: 640px) {
   .compare-bar__inner {
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
     padding: var(--space-2) var(--space-4);
+  }
+
+  .compare-bar__list {
+    flex-basis: 100%;
+    flex-wrap: nowrap;
+    order: 3;
   }
 
   .compare-bar__name {
     display: none;
-  }
-
-  .compare-bar__link {
-    width: 100%;
   }
 }
 </style>
