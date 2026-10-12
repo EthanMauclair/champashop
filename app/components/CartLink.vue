@@ -12,7 +12,7 @@
       <circle cx="10" cy="20" r="1.5" fill="currentColor" />
       <circle cx="17" cy="20" r="1.5" fill="currentColor" />
     </svg>
-    <span aria-hidden="true">Panier</span>
+    <span class="cart-link__label" aria-hidden="true">Panier</span>
     <span v-if="cart.itemCount > 0" class="cart-link__count" aria-hidden="true">{{ cart.itemCount }}</span>
   </NuxtLink>
 </template>
@@ -51,6 +51,17 @@ const label = computed<string>(() => {
 
 .cart-link__icon {
   flex-shrink: 0;
+}
+
+/* Petits écrans : icône seule, le nom reste porté par aria-label. */
+@media (max-width: 520px) {
+  .cart-link {
+    padding: 0 var(--space-3);
+  }
+
+  .cart-link__label {
+    display: none;
+  }
 }
 
 .cart-link__count {

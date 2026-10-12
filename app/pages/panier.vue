@@ -50,6 +50,7 @@
           @apply="cart.applyPromoCode"
           @remove="cart.removePromoCode"
         />
+        <NuxtLink to="/commande" class="btn btn--accent btn--block cart-checkout">Passer commande</NuxtLink>
         <NuxtLink to="/produits" class="btn btn--secondary btn--block cart-continue">Continuer mes achats</NuxtLink>
       </aside>
     </div>
@@ -134,8 +135,12 @@ function onClear(): void {
   top: calc(var(--header-height) + var(--space-5));
 }
 
-.cart-continue {
+.cart-checkout {
   margin-top: var(--space-4);
+}
+
+.cart-continue {
+  margin-top: var(--space-3);
 }
 
 .notices {

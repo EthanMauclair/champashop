@@ -1,15 +1,37 @@
 # ChampaShop - Vitrine en ligne
 
-Boutique fictive développée en équipe avec Nuxt, Vue 3, TypeScript (strict), Pinia et Vitest.
+Boutique fictive développée en équipe avec **Nuxt 4.5**, Vue 3.5, TypeScript 6 (strict), Pinia 4 et Vitest 5.
 
-**Version actuelle : v0.1.0** (fin de semaine 1, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
+**Version actuelle : v0.2.0** (fin de semaine 2, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
+
+## Stack technique
+
+Versions installées (verrouillées par `package-lock.json`) :
+
+| Outil | Version | Rôle |
+| :--- | :--- | :--- |
+| Node.js | 22 (CI) | Environnement d'exécution |
+| **Nuxt** | **4.5.2** | Framework (SSR, routage, `useFetch`, `useCookie`) |
+| Vue | 3.5.43 | Composants `<script setup>` |
+| Vue Router | 5.3.1 | Routage (via Nuxt) |
+| Pinia / @pinia/nuxt | 4.0.3 / 1.0.2 | Stores (panier, authentification, comparateur, vus récemment, commande) |
+| TypeScript / vue-tsc | 6.0.3 / 3.3.11 | Typage strict, `nuxi typecheck` |
+| Vitest / @vitest/coverage-v8 | 5.0.1 | Tests unitaires et couverture |
+| @nuxt/test-utils | 4.3.2 | Environnement de test Nuxt |
+| ESLint / @nuxt/eslint | 10.11.0 / 1.17.0 | Lint (`no-explicit-any` en erreur) |
+| Prettier | 3.9.9 | Formatage |
 
 ## Répartition des rôles
 
 * **Ethan** : initialisation du projet (dépôt, CI, déploiement Vercel, template de PR), F1 - Catalogue, F2 - Fiche produit
 * **Roman** : F3 - Panier, F4 - Moteur de promotions, F5 - Authentification, mise en conformité F1/F2, refonte design et page d'accueil
 
-> **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
+Semaine 2 :
+
+* **Ethan** : F6 - Comparateur (sélection et barre #26, page `/comparer` #27)
+* **Roman** : F7 - Produits vus récemment (#25), en-tête mobile (#28), tunnel de commande fictif (#32)
+
+> **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (version **4.5.2** ici ; code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
 
 ## Choix Techniques & Justifications
 
@@ -48,6 +70,44 @@ Le composant `AddToCartButton` est réutilisable : il est branché sur les carte
 * **Tester avec `expiresInMins: 1`** : sur `/connexion`, cocher « Session de test (1 minute) », attendre une minute, puis sur `/compte` cliquer « Lancer 3 requêtes simultanées » : le panneau affiche le nombre d'appels à `/auth/refresh` (1 attendu).
 * **Déconnexion** : suppression des cookies et de l'état, retour à l'accueil.
 * **Limite assumée** : les cookies ne sont pas `httpOnly`, car le navigateur doit lire le jeton pour l'en-tête `Authorization`. En production, on passerait par un proxy serveur (BFF) avec des cookies `httpOnly`, inaccessibles à un script injecté (XSS).
+
+### F6 (Comparateur de produits) - Sélection et cookie `compare`
+La logique est dans des fonctions pures (`app/utils/compare.ts`, testées dans `tests/unit/compare.spec.ts`) : `parseCompareIds(raw, max = 3)` et `toggleCompare(ids, id, max = 3)`. Le store Pinia `compare` gère l'état et le cookie.
+
+* **Bouton « Comparer »** (`CompareButton`) sur chaque carte du catalogue et sur la fiche produit : bouton bascule avec `aria-pressed` (son libellé ne change pas, c'est l'état « activé » qui est annoncé).
+* **3 produits maximum** : au 4ᵉ, `toggleCompare` renvoie `rejected: true`, rien n'est ajouté et « Comparateur plein : retirez un produit pour en ajouter un autre » est annoncé (`role="status"`, `aria-live="polite"`). Le message disparaît dès qu'une place se libère.
+* **Barre « Comparer (n/3) »** (`CompareBar`, dans le layout) : miniatures, bouton de retrait par produit (le focus revient sur le titre de la barre) et lien vers `/comparer?ids=…`. Elle est en `position: sticky` en bas de l'écran : visible pendant toute la navigation, mais en fin de page elle prend sa propre place et ne masque jamais le pied de page.
+* **Cookie `compare`** : identifiants uniquement, dans l'ordre de sélection, séparés par des virgules et encodés (`3%2C17%2C42`, la virgule n'étant pas autorisée dans une valeur de cookie), 30 jours, `sameSite: lax`. Il est lu par `useCookie` côté serveur : la barre et l'état des boutons sont dans le HTML initial. Un cookie modifié à la main (`abc`, doublons, plus de 3 identifiants) est nettoyé par `parseCompareIds` puis réécrit propre ; il ne fait jamais planter la page.
+* **Miniatures** : le produit cliqué est mémorisé directement. Après un rechargement, les produits inconnus sont chargés côté serveur en parallèle (3 requêtes au plus, `select=title,thumbnail`) ; un produit supprimé (404) est retiré de la sélection.
+
+### F6 (Comparateur de produits) - Page `/comparer?ids=3,17,42`
+* **URL source de vérité** : la page ne lit que le paramètre `ids` (jamais le cookie) ; un lien partagé affiche donc les mêmes produits chez n'importe qui, rendus côté serveur (testable JavaScript désactivé, en fenêtre privée). `definePageMeta({ key: route => route.fullPath })` recrée la page à chaque changement d'URL.
+* **URL invalide** : identifiants non numériques, dupliqués ou au-delà de 3 sont ignorés par `parseCompareIds`, les inexistants (404) sont retirés après chargement, puis l'URL est normalisée avec `navigateTo(…, { replace: true })` (redirection 302 côté serveur, sans entrée d'historique côté client). Exemples : `?ids=5,5,5` → `?ids=5`, `?ids=1,,2` → `?ids=1,2`, `?ids=abc` → `/comparer`. Aucune erreur 500 (`isCanonicalCompareQuery`, testée).
+* **Chargement en parallèle** : une requête par produit (`select` limité aux 13 champs du tableau), avec `Promise.allSettled`. `splitCompareResults` (testée) sépare les produits chargés, les inexistants (404, retirés de l'URL) et les échecs (réseau : gardés dans l'URL, message et bouton « Réessayer ») : l'échec d'un produit n'empêche pas l'affichage des autres.
+* **Cookie ≠ URL** (lien reçu d'un tiers) : la page affiche l'URL et propose « Remplacer ma sélection par celle-ci » ; la sélection du visiteur n'est jamais modifiée sans ce clic. Les sélections sont comparées sans tenir compte de l'ordre (`isSameSelection`).
+* **Copier le lien** (`CopyLinkButton`) : `navigator.clipboard.writeText`, confirmation annoncée (`role="status"`). Repli si l'API est absente ou refusée (contexte non sécurisé, permission) : le lien s'affiche dans un champ en lecture seule, sélectionné, à copier avec Ctrl+C.
+* **Tableau** (`CompareTable`) : vrai `<table>` avec `<caption>`, produits en `<th scope="col">` (image et titre), caractéristiques en `<th scope="row">` : prix, remise, note, disponibilité (`availabilityStatus` traduit), stock, marque, catégorie, poids, dimensions (l × h × p), garantie, livraison. DummyJSON ne donne pas d'unités : poids affiché en kg et dimensions en cm. Les lignes sont construites par `buildCompareRows` (testée).
+* **Meilleure valeur** : prix le plus bas, remise la plus haute, note la plus haute (comparée telle qu'affichée, à 1 décimale), stock le plus élevé, avec un libellé texte (« Meilleur prix », « Meilleure remise », « Meilleure note », « Plus grand stock ») en plus de la couleur. Ex aequo : tous sont mis en évidence ; valeurs toutes égales : aucun.
+* **« Afficher uniquement les différences »** : masque les lignes dont la valeur est identique pour tous les produits (`filterCompareRows`) ; la légende du tableau l'indique.
+* **Mobile (≤ 640 px)** : le tableau défile horizontalement dans sa propre zone (`overflow-x: auto`, focusable au clavier et nommée par la légende), la première colonne est figée (`position: sticky; left: 0`) et la page elle-même ne déborde pas.
+* **État vide** : « Aucun produit à comparer » avec un lien vers le catalogue (et vers sa propre sélection si elle existe).
+
+### F7 (Produits vus récemment) - Cookie et chargement des produits
+Chaque visite d'une fiche produit **existante** place son identifiant en tête de l'historique (sans doublon, 10 au maximum). La logique est dans des fonctions pures (`app/utils/recentlyViewed.ts`, testées dans `tests/unit/recentlyViewed.spec.ts`) ; le store Pinia `recentlyViewed` gère l'état et le cookie.
+
+* **Cookie `recently_viewed`** : identifiants uniquement, tableau JSON encodé (`%5B17%2C3%5D` pour `[17,3]`), 30 jours, `sameSite: lax`. Il est lu par `useCookie` côté serveur : la liste est dans le HTML initial, et l'état Pinia est transmis au client (pas de flash, pas d'erreur d'hydratation).
+* **Cookie corrompu** (JSON invalide, valeurs non numériques, doublons, plus de 10 identifiants) : `parseRecentlyViewedCookie` ne lève jamais d'erreur, ne garde que les entiers positifs, et le cookie est réécrit propre (ou supprimé s'il ne reste rien).
+* **404** : le suivi est appelé après les vérifications de la fiche, donc un produit inexistant n'est jamais ajouté. Un produit de l'historique supprimé depuis (404 au rechargement) en est retiré.
+* **Stratégie de chargement** : DummyJSON ne sait pas renvoyer plusieurs produits par identifiants. On fait **une requête par produit manquant, en parallèle** (`Promise.allSettled`), avec `select=title,price,thumbnail,category` (≈ 200 octets par produit). Le produit de la fiche visitée est mémorisé directement, sans requête. Au pire 10 petites requêtes simultanées côté serveur, dont la durée est celle de la plus lente ; l'échec de l'une n'empêche pas l'affichage des autres. Alternative écartée : charger tout le catalogue (`limit=0`, ≈ 37 Ko même avec `select`) pour en afficher 10, coût qui grandit avec le catalogue.
+* **Affichage** : sur l'accueil et en bas de la fiche produit (sans le produit en cours), liste défilante horizontalement. « Effacer l'historique » supprime le cookie, annonce « Votre historique de navigation a été effacé » (`role="status"`) et replace le focus sur le titre de la section.
+
+### Tunnel de commande fictif (`/commande`, issue #32)
+Depuis le panier, « Passer commande » mène à un tunnel en 3 étapes : coordonnées et adresse de livraison, paiement (carte bancaire ou PayPal, **simulé**), vérification, puis page de confirmation avec numéro de commande ; le panier est alors vidé.
+
+* **Logique en fonctions pures** (`app/utils/checkout.ts`, testées dans `tests/unit/checkout.spec.ts`) : validation des coordonnées (téléphone et code postal français), de la carte (algorithme de Luhn, date d'expiration, cryptogramme) et de l'e-mail PayPal, paiement simulé, numéro de commande.
+* **Cartes de test** : `4242 4242 4242 4242` est acceptée, `4000 0000 0000 0002` est refusée (le panier reste intact).
+* **Données** : le store `checkout` (coordonnées, dernière commande) n'est pas persisté ; les données de carte restent dans le composant et ne sont jamais stockées. `/commande` est exclu dans `robots.txt`.
+* **Accessibilité** : récapitulatif des erreurs avec liens vers les champs, `aria-invalid` / `aria-describedby`, étape courante en `aria-current="step"`, focus sur le titre de chaque étape.
 
 ### Design, accessibilité et référencement
 * **Design « moderne minimal » en CSS pur**, sans dépendance supplémentaire : `app/assets/css/main.css` définit les variables (couleurs, espacements, rayons), la base typographique (police Inter), les boutons (`.btn`), les champs (`.input`, `.select`) et les états (`.state`, `.notice`). Les composants n'utilisent que ces variables.
