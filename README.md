@@ -2,7 +2,7 @@
 
 Boutique fictive développée en équipe avec **Nuxt 4.5**, Vue 3.5, TypeScript 6 (strict), Pinia 4 et Vitest 5.
 
-**Version actuelle : v0.1.0** (fin de semaine 1, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
+**Version actuelle : v0.2.0** (fin de semaine 2, voir [CHANGELOG.md](CHANGELOG.md)) · Site : https://champashop.vercel.app/
 
 ## Stack technique
 
@@ -14,7 +14,7 @@ Versions installées (verrouillées par `package-lock.json`) :
 | **Nuxt** | **4.5.2** | Framework (SSR, routage, `useFetch`, `useCookie`) |
 | Vue | 3.5.43 | Composants `<script setup>` |
 | Vue Router | 5.3.1 | Routage (via Nuxt) |
-| Pinia / @pinia/nuxt | 4.0.3 / 1.0.2 | Stores (panier, authentification) |
+| Pinia / @pinia/nuxt | 4.0.3 / 1.0.2 | Stores (panier, authentification, comparateur, vus récemment, commande) |
 | TypeScript / vue-tsc | 6.0.3 / 3.3.11 | Typage strict, `nuxi typecheck` |
 | Vitest / @vitest/coverage-v8 | 5.0.1 | Tests unitaires et couverture |
 | @nuxt/test-utils | 4.3.2 | Environnement de test Nuxt |
@@ -25,6 +25,11 @@ Versions installées (verrouillées par `package-lock.json`) :
 
 * **Ethan** : initialisation du projet (dépôt, CI, déploiement Vercel, template de PR), F1 - Catalogue, F2 - Fiche produit
 * **Roman** : F3 - Panier, F4 - Moteur de promotions, F5 - Authentification, mise en conformité F1/F2, refonte design et page d'accueil
+
+Semaine 2 :
+
+* **Ethan** : F6 - Comparateur (sélection et barre #26, page `/comparer` #27)
+* **Roman** : F7 - Produits vus récemment (#25), en-tête mobile (#28), tunnel de commande fictif (#32)
 
 > **Note sur la version de Nuxt** : le sujet impose Nuxt 3. Le projet a été initialisé avec `npx nuxi@latest init`, qui installe aujourd'hui **Nuxt 4** (version **4.5.2** ici ; code dans le dossier `app/`, API `useFetch`, `useCookie`, `definePageMeta`… identiques à Nuxt 3). Cet écart est connu de l'équipe.
 
@@ -95,6 +100,14 @@ Chaque visite d'une fiche produit **existante** place son identifiant en tête d
 * **404** : le suivi est appelé après les vérifications de la fiche, donc un produit inexistant n'est jamais ajouté. Un produit de l'historique supprimé depuis (404 au rechargement) en est retiré.
 * **Stratégie de chargement** : DummyJSON ne sait pas renvoyer plusieurs produits par identifiants. On fait **une requête par produit manquant, en parallèle** (`Promise.allSettled`), avec `select=title,price,thumbnail,category` (≈ 200 octets par produit). Le produit de la fiche visitée est mémorisé directement, sans requête. Au pire 10 petites requêtes simultanées côté serveur, dont la durée est celle de la plus lente ; l'échec de l'une n'empêche pas l'affichage des autres. Alternative écartée : charger tout le catalogue (`limit=0`, ≈ 37 Ko même avec `select`) pour en afficher 10, coût qui grandit avec le catalogue.
 * **Affichage** : sur l'accueil et en bas de la fiche produit (sans le produit en cours), liste défilante horizontalement. « Effacer l'historique » supprime le cookie, annonce « Votre historique de navigation a été effacé » (`role="status"`) et replace le focus sur le titre de la section.
+
+### Tunnel de commande fictif (`/commande`, issue #32)
+Depuis le panier, « Passer commande » mène à un tunnel en 3 étapes : coordonnées et adresse de livraison, paiement (carte bancaire ou PayPal, **simulé**), vérification, puis page de confirmation avec numéro de commande ; le panier est alors vidé.
+
+* **Logique en fonctions pures** (`app/utils/checkout.ts`, testées dans `tests/unit/checkout.spec.ts`) : validation des coordonnées (téléphone et code postal français), de la carte (algorithme de Luhn, date d'expiration, cryptogramme) et de l'e-mail PayPal, paiement simulé, numéro de commande.
+* **Cartes de test** : `4242 4242 4242 4242` est acceptée, `4000 0000 0000 0002` est refusée (le panier reste intact).
+* **Données** : le store `checkout` (coordonnées, dernière commande) n'est pas persisté ; les données de carte restent dans le composant et ne sont jamais stockées. `/commande` est exclu dans `robots.txt`.
+* **Accessibilité** : récapitulatif des erreurs avec liens vers les champs, `aria-invalid` / `aria-describedby`, étape courante en `aria-current="step"`, focus sur le titre de chaque étape.
 
 ### Design, accessibilité et référencement
 * **Design « moderne minimal » en CSS pur**, sans dépendance supplémentaire : `app/assets/css/main.css` définit les variables (couleurs, espacements, rayons), la base typographique (police Inter), les boutons (`.btn`), les champs (`.input`, `.select`) et les états (`.state`, `.notice`). Les composants n'utilisent que ces variables.
