@@ -3,6 +3,25 @@
 Toutes les évolutions notables de ChampaShop sont listées ici.
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions selon [SemVer](https://semver.org/lang/fr/).
 
+## [0.2.0] - 2026-10-12
+
+Fonctionnalités de la semaine 2 : comparateur, produits vus récemment et tunnel de commande.
+
+### Ajouté
+- **F6 — Comparateur, sélection** : bouton bascule « Comparer » (`aria-pressed`) sur les cartes et la fiche produit, 3 produits maximum avec message annoncé au 4ᵉ, barre « Comparer (n/3) » persistante, sélection dans le cookie `compare` lue côté serveur (#26, #30).
+- **F6 — Page `/comparer?ids=`** : URL source de vérité rendue côté serveur, normalisation des URL invalides sans erreur 500, chargement des produits en parallèle, proposition « Remplacer ma sélection par celle-ci », bouton « Copier le lien » avec repli, tableau comparatif accessible (meilleures valeurs signalées par un libellé, option « Afficher uniquement les différences », colonne figée sur mobile) (#27, #31).
+- **F7 — Produits vus récemment** : historique de 10 produits sans doublon dans le cookie `recently_viewed`, présent dès le HTML serveur, tolérant aux cookies corrompus, affiché sur l'accueil et la fiche produit avec « Effacer l'historique » (#25, #29).
+- **Tunnel de commande fictif** `/commande` : coordonnées, paiement simulé (carte ou PayPal), vérification et confirmation ; validation en fonctions pures testées (#32, #34).
+- Fonctions pures testées : `parseCompareIds`, `toggleCompare`, `pushRecentlyViewed`, `parseRecentlyViewedCookie`, et la logique du tableau comparatif et de la commande.
+
+### Corrigé
+- En-tête sans débordement horizontal sur mobile (≤ 400 px) (#28, #33).
+- Barre de comparaison compacte sur mobile (#30).
+- Impossible de passer commande depuis le panier (#32, #34).
+
+### Modifié
+- README : versions exactes de la stack (#24), sections F6, F7 et tunnel de commande, répartition des rôles de la semaine 2.
+
 ## [0.1.0] - 2026-10-02
 
 Première version : socle du projet et fonctionnalités de la semaine 1.
@@ -28,4 +47,5 @@ Première version : socle du projet et fonctionnalités de la semaine 1.
 ### Remarques
 - La PR #13 a été mergée par erreur dans `main` au lieu de `develop` ; elle a été refaite vers `develop` (#14). Cette release réaligne `main` sur `develop`.
 
+[0.2.0]: https://github.com/EthanMauclair/champashop/releases/tag/v0.2.0
 [0.1.0]: https://github.com/EthanMauclair/champashop/releases/tag/v0.1.0
